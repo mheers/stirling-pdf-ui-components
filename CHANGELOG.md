@@ -13,6 +13,8 @@ All notable changes to this project are documented here. The format follows
 - `SpdfUiPlugin` / `provideSpdfUi` let a shadcn host substitute its own Button, Input, Textarea,
   Checkbox, Switch, Slider, Badge, Skeleton, and Spinner, plus class recipes for native controls and
   overlay skins.
+- `@mheers/stirling-pdf-ui-components/core` is an engine-free entry for apps that already render
+  PDFs elsewhere. `pdfjs-dist` is now an optional peer and is never loaded by `/core`.
 
 ### Changed
 

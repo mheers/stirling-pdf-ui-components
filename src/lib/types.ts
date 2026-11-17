@@ -191,6 +191,20 @@ export interface PdfProcessingStep {
 
 export type PdfFitMode = 'page' | 'width' | 'custom';
 
+export interface PdfSearchMatch {
+  page: number;
+  snippet: string;
+  index: number;
+}
+
+export interface PdfSearchResults {
+  query: string;
+  total: number;
+  matches: PdfSearchMatch[];
+  byPage: { page: number; count: number }[];
+  truncated: boolean;
+}
+
 export interface PdfDocumentStats {
   pageCount: number;
   fileSize?: number;

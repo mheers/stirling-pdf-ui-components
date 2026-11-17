@@ -2,7 +2,7 @@
 import { computed, nextTick, onMounted, ref } from 'vue';
 import { FileSearch, Search, X } from '@lucide/vue';
 import { cn } from '../../lib/cn';
-import type { PdfSearchResults } from '../../lib/pdf';
+import type { PdfSearchResults } from '../../lib/types';
 import Button from '../ui/Button.vue';
 import Input from '../ui/Input.vue';
 import Spinner from '../ui/Spinner.vue';

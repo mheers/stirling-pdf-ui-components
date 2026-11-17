@@ -18,7 +18,7 @@ import {
   Wrench,
 } from '@lucide/vue';
 import type { PageOrganizerItem, PdfFileDescriptor, PdfMetadata, PdfResult, PdfTool } from '../lib/types';
-import type { PdfSearchResults } from '../lib/pdf';
+import type { PdfSearchResults } from '../lib/types';
 
 export const handbookUrl = '/samples/handbook.pdf';
 export const invoiceUrl = '/samples/invoice.pdf';

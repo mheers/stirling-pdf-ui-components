@@ -4,7 +4,12 @@ import type {
   PageViewport,
   RenderTask,
 } from 'pdfjs-dist';
-import type { PdfDocumentStats, PdfSource } from './types';
+import type {
+  PdfDocumentStats,
+  PdfSearchMatch,
+  PdfSearchResults,
+  PdfSource,
+} from './types';
 
 type PdfJsModule = typeof import('pdfjs-dist');
 type PdfDocumentParams = NonNullable<Parameters<PdfJsModule['getDocument']>[0]>;
@@ -468,20 +473,6 @@ export async function findPdfTextHighlights(
   }
 
   return boxes;
-}
-
-export interface PdfSearchMatch {
-  page: number;
-  snippet: string;
-  index: number;
-}
-
-export interface PdfSearchResults {
-  query: string;
-  total: number;
-  matches: PdfSearchMatch[];
-  byPage: { page: number; count: number }[];
-  truncated: boolean;
 }
 
 /**

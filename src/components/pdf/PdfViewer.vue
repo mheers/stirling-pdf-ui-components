@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue';
-import type { PdfSearchResults } from '../../lib/pdf';
 import {
   configurePdfJs,
   pageRotation,
   searchPdfDocument,
 } from '../../lib/pdf';
+import type { PdfSearchResults } from '../../lib/types';
 import { cn } from '../../lib/cn';
 import type { PdfFitMode, PdfSource } from '../../lib/types';
 import { useElementSize } from '../../composables/useElementSize';

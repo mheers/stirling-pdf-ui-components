@@ -67,7 +67,8 @@ product different.
 
 - **Vue 3.5+**
 - **Node 22.13+** for development (PDF.js v6 requires it)
-- **pdfjs-dist 5.4+ or 6.x** as a peer dependency for the PDF engine
+- **pdfjs-dist 5.4+ or 6.x** for the PDF.js-backed components. Optional if you only import from
+  [`/core`](#engine-free-entry)
 - **reka-ui 2.x, @lucide/vue 1.x, clsx, tailwind-merge, and class-variance-authority** — a
   shadcn-vue app already ships these
 - A bundler that supports ESM (Vite, Nuxt, Rollup, webpack 5, Rspack, …)
@@ -99,6 +100,30 @@ on top of the peers your app already ships, instead of a second copy of Reka UI 
 
 `pdfjs-dist` is only loaded when a component that renders pages mounts. Components such as
 `PdfDropzone`, `PdfToolGrid`, or `PdfMetadataForm` never import the engine.
+
+### Engine-free entry
+
+If your app already has a PDF renderer, import the UI and form surfaces from `/core`:
+
+```ts
+import {
+  PdfDropzone,
+  PdfFileList,
+  PdfMetadataForm,
+  PdfProcessingState,
+  PdfResultPanel,
+  PdfToolGrid,
+  WatermarkSettings,
+} from '@mheers/stirling-pdf-ui-components/core';
+```
+
+That entry never imports `pdfjs-dist`. It includes the upload/file/tool surfaces, task forms,
+signature capture, page-range and position controls, results, the search results panel, and all UI
+primitives. You still import `style.css`, and the shared shadcn peers (`reka-ui`, `@lucide/vue`,
+`clsx`, `tailwind-merge`, `class-variance-authority`) are still used.
+
+The PDF.js-backed components (`PdfViewer`, `PdfThumbnail`, `PdfThumbnailSidebar`, `PdfPageCanvas`,
+`PdfPageGrid`, `PdfPageOrganizer`, and `PdfDocumentInfo`) live only in the main entry.
 
 ## Quick start
 
@@ -457,11 +482,11 @@ For the `odoo` app this plugs into `web/src/components/ui/button/Button.vue` dir
 `variant` and `size` names match, and the provider maps the library's `icon-sm` toolbar size to
 your `icon` size.
 
-If your app already renders PDFs with another engine (for example EmbedPDF), use the engine-free
-surfaces — dropzones, file and tool lists, task forms, signature capture, results — and skip
-`PdfViewer`, `PdfThumbnail`, `PdfThumbnailSidebar`, `PdfPageCanvas`, `PdfPageGrid`,
-`PdfPageOrganizer`, and `PdfDocumentInfo` unless you want PDF.js alongside. Only those components
-ever load `pdfjs-dist`.
+If your app already renders PDFs with another engine (for example EmbedPDF), import from
+`@mheers/stirling-pdf-ui-components/core` and use the engine-free surfaces — dropzones, file and
+tool lists, task forms, signature capture, results. Skip `PdfViewer`, `PdfThumbnail`,
+`PdfThumbnailSidebar`, `PdfPageCanvas`, `PdfPageGrid`, `PdfPageOrganizer`, and `PdfDocumentInfo`
+unless you want PDF.js alongside. Only those components ever load `pdfjs-dist`.
 
 ## Accessibility
 
@@ -561,7 +586,8 @@ pnpm install
 pnpm dev            # Storybook
 pnpm typecheck      # vue-tsc
 pnpm test           # Vitest
-pnpm build          # ESM bundle, CSS, and .d.ts
+pnpm build          # ESM bundles, CSS, and .d.ts
+pnpm check:core     # assert /core never reaches PDF.js
 pnpm example:build  # build the consumer demo
 pnpm samples        # regenerate sample PDFs (Python + reportlab)
 ```

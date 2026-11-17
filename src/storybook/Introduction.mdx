@@ -39,8 +39,9 @@ for Vue 3 and the shadcn-vue ecosystem.
 pnpm add @mheers/stirling-pdf-ui-components pdfjs-dist
 ```
 
-`pdfjs-dist` is a required peer dependency, but it is loaded lazily: only the viewer, thumbnail,
-search, and document-info components use the PDF engine. Pure UI and form components never do.
+`pdfjs-dist` is an optional peer dependency, loaded lazily: only the viewer, thumbnail, search, and
+document-info components use the PDF engine. If your app already has a renderer, import the
+engine-free surfaces from `@mheers/stirling-pdf-ui-components/core` and skip `pdfjs-dist` entirely.
 `reka-ui`, `@lucide/vue`, `clsx`, `tailwind-merge`, and `class-variance-authority` are peers too,
 so a shadcn-vue app keeps a single copy of each instead of bundling duplicates.
 

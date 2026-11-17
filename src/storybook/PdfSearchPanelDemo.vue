@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import PdfSearchPanel from '../components/pdf/PdfSearchPanel.vue';
-import type { PdfSearchResults } from '../lib/pdf';
+import type { PdfSearchResults } from '../lib/types';
 
 interface Props {
   initialQuery?: string;

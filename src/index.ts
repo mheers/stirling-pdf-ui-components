@@ -112,8 +112,6 @@ export type {
   PdfHighlightBox,
   PdfJsConfig,
   PdfPageRender,
-  PdfSearchMatch,
-  PdfSearchResults,
   PdfTextLayerHandle,
   RenderPdfPageOptions,
 } from './lib/pdf';
