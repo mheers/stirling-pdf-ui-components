@@ -33,6 +33,8 @@ interface Props {
   allowDownload?: boolean;
   allowPrint?: boolean;
   workerSrc?: string;
+  /** Open password for encrypted documents, or an initial value for the dialog. */
+  password?: string;
   minZoom?: number;
   maxZoom?: number;
   initialFit?: 'page' | 'width';
@@ -59,11 +61,27 @@ const emit = defineEmits<{
   download: [];
   print: [];
   passwordRequired: [];
+  /** Emitted once an encrypted document opens successfully. */
+  unlocked: [password: string];
 }>();
 
 if (props.workerSrc) configurePdfJs({ workerSrc: props.workerSrc });
 
-const password = ref<string | undefined>();
+watch(
+  () => props.workerSrc,
+  (value) => {
+    if (value) configurePdfJs({ workerSrc: value });
+  },
+);
+
+const password = ref<string | undefined>(props.password);
+
+watch(
+  () => props.password,
+  (value) => {
+    if (value !== password.value) password.value = value;
+  },
+);
 const { doc, numPages, loading, error, reload, passwordRequired, passwordErrorCode } = usePdfDocument(
   () => props.source,
   { password },
@@ -95,6 +113,7 @@ let pendingScrollPage: number | null = null;
 let searchTimer: ReturnType<typeof setTimeout> | null = null;
 let searchAbort: AbortController | null = null;
 let searchToken = 0;
+let passwordWasNeeded = false;
 
 const passwordOpen = ref(false);
 const passwordDismissed = ref(false);
@@ -107,9 +126,23 @@ const unlockError = computed(() => {
   return passwordErrorCode.value === 2 ? 'That password didn’t work. Try again.' : '';
 });
 
+function filenameFromUrl(value: string, base?: string): string {
+  try {
+    const parsed = new URL(value, base ?? (typeof location !== 'undefined' ? location.href : 'http://localhost'));
+    const last = parsed.pathname.split('/').filter(Boolean).pop();
+    return last ? decodeURIComponent(last) : 'document.pdf';
+  } catch {
+    return 'document.pdf';
+  }
+}
+
 const resolvedFilename = computed(() => {
   if (props.filename) return props.filename;
   if (typeof File !== 'undefined' && props.source instanceof File) return props.source.name;
+  if (typeof props.source === 'string') return filenameFromUrl(props.source);
+  if (typeof URL !== 'undefined' && props.source instanceof URL) {
+    return filenameFromUrl(props.source.href);
+  }
   return 'document.pdf';
 });
 
@@ -214,7 +247,11 @@ async function goToPage(page: number, smooth = true) {
   }
 
   const top = element.getBoundingClientRect().top - scroll.getBoundingClientRect().top + scroll.scrollTop - 16;
-  scroll.scrollTo({ top, behavior: smooth ? 'smooth' : 'auto' });
+  const reduceMotion =
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  scroll.scrollTo({ top, behavior: smooth && !reduceMotion ? 'smooth' : 'auto' });
   pendingScrollPage = null;
 }
 
@@ -223,6 +260,13 @@ function setPageElement(page: number, element: unknown) {
     pageElements.set(page, element);
     visibilityObserver?.observe(element);
     renderObserver?.observe(element);
+    // Without IntersectionObserver every page must render eagerly, otherwise
+    // the lazy-render gate would leave the document blank.
+    if (typeof IntersectionObserver === 'undefined' && !renderPages.value.has(page)) {
+      const next = new Set(renderPages.value);
+      next.add(page);
+      renderPages.value = next;
+    }
     if (pendingScrollPage === page) {
       void nextTick(() => goToPage(page, false));
     }
@@ -301,6 +345,10 @@ watch(
   doc,
   async (document) => {
     if (!document) return;
+    if (password.value && passwordWasNeeded) {
+      passwordWasNeeded = false;
+      emit('unlocked', password.value);
+    }
     emit('loaded', { numPages: document.numPages });
     currentPage.value = Math.min(Math.max(1, props.initialPage), document.numPages);
     await loadPageSize();
@@ -312,12 +360,39 @@ watch(
 );
 
 watch(
+  () => props.showThumbnails,
+  (value) => {
+    sidebarOpen.value = value;
+  },
+);
+
+watch(
+  () => props.showSearch,
+  (value) => {
+    if (!value) closeSearch();
+  },
+);
+
+watch(
+  () => props.initialFit,
+  (value) => {
+    fitMode.value = value;
+    applyFit();
+  },
+);
+
+watch(
   () => props.source,
   () => {
+    searchToken += 1;
+    searchAbort?.abort();
+    if (searchTimer) clearTimeout(searchTimer);
     searchQuery.value = '';
     searchResults.value = null;
-    password.value = undefined;
+    searching.value = false;
+    password.value = props.password;
     passwordInput.value = '';
+    passwordWasNeeded = false;
     passwordDismissed.value = false;
     pageSize.value = null;
     fitMode.value = props.initialFit;
@@ -341,6 +416,7 @@ watch(
 
 watch(passwordRequired, (required) => {
   if (required) {
+    passwordWasNeeded = true;
     passwordOpen.value = true;
     passwordDismissed.value = false;
     passwordValidation.value = '';
@@ -388,6 +464,9 @@ function closeSearch() {
   searchQuery.value = '';
   searchResults.value = null;
   searching.value = false;
+  // Invalidate any in-flight search so a late response cannot repopulate the
+  // closed panel.
+  searchToken += 1;
   searchAbort?.abort();
   if (searchTimer) clearTimeout(searchTimer);
 }
@@ -400,6 +479,8 @@ watch(searchQuery, (query) => {
   const token = ++searchToken;
 
   if (query.trim().length < 2) {
+    searchToken += 1;
+    searchAbort?.abort();
     searchResults.value = null;
     searching.value = false;
     return;
@@ -456,16 +537,18 @@ function printFile() {
   frame.style.height = '0';
   frame.style.border = '0';
   frame.src = resolved.url;
+  const cleanup = () => {
+    frame.remove();
+    if (resolved.revoke) URL.revokeObjectURL(resolved.url);
+  };
   frame.onload = () => {
     try {
       frame.contentWindow?.print();
     } finally {
-      window.setTimeout(() => {
-        frame.remove();
-        if (resolved.revoke) URL.revokeObjectURL(resolved.url);
-      }, 1000);
+      window.setTimeout(cleanup, 1000);
     }
   };
+  frame.onerror = cleanup;
   document.body.append(frame);
   emit('print');
 }
@@ -475,13 +558,19 @@ function syncFullscreen() {
 }
 
 async function toggleFullscreen() {
-  if (!root.value) return;
-  if (document.fullscreenElement) {
-    await document.exitFullscreen();
-  } else {
-    await root.value.requestFullscreen();
+  if (!root.value || typeof document === 'undefined') return;
+  try {
+    if (document.fullscreenElement) {
+      if (document.exitFullscreen) await document.exitFullscreen();
+    } else if (root.value.requestFullscreen) {
+      await root.value.requestFullscreen();
+    } else {
+      return;
+    }
+    syncFullscreen();
+  } catch {
+    // Fullscreen can be denied by browser policy; leave the viewer as-is.
   }
-  syncFullscreen();
 }
 
 function onKeydown(event: KeyboardEvent) {
@@ -555,7 +644,7 @@ defineExpose({
       :page-count="numPages"
       :zoom="zoom"
       :rotation="rotation"
-      :filename="props.filename"
+      :filename="resolvedFilename"
       :sidebar-open="sidebarOpen"
       :search-open="searchOpen"
       :show-search="props.showSearch"
@@ -709,7 +798,6 @@ defineExpose({
             placeholder="Document password"
             :aria-describedby="describedBy"
             :aria-invalid="invalid || undefined"
-            autofocus
           />
         </Field>
         <div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">

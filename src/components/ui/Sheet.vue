@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import {
   DialogClose,
   DialogContent,
@@ -9,8 +10,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from 'reka-ui';
-import { X } from 'lucide-vue-next';
+import { X } from '@lucide/vue';
 import { cn } from '../../lib/cn';
+import { useSpdfUi } from './context';
 
 type Side = 'left' | 'right' | 'top' | 'bottom';
 
@@ -24,6 +26,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), { side: 'right' });
 
 const open = defineModel<boolean>('open', { default: false });
+const ui = useSpdfUi();
 
 const sides: Record<Side, string> = {
   right: 'inset-y-0 right-0 h-full w-80 max-w-[90vw] border-l',
@@ -31,6 +34,24 @@ const sides: Record<Side, string> = {
   top: 'inset-x-0 top-0 w-full max-h-[85vh] border-b',
   bottom: 'inset-x-0 bottom-0 w-full max-h-[85vh] border-t',
 };
+
+const overlayClasses = computed(() =>
+  cn(
+    'spdf spdf-overlay fixed inset-0 z-50 bg-[var(--overlay)] backdrop-blur-[2px]',
+    ui.classes?.dialogOverlay,
+  ),
+);
+
+const contentClasses = computed(() =>
+  cn(
+    'spdf fixed z-50 flex flex-col gap-5 overflow-y-auto spdf-scroll',
+    `spdf-sheet-${props.side}`,
+    sides[props.side],
+    'border-border bg-popover p-5 text-popover-foreground shadow-2xl',
+    ui.classes?.sheet,
+    props.class,
+  ),
+);
 </script>
 
 <template>
@@ -39,17 +60,8 @@ const sides: Record<Side, string> = {
       <slot name="trigger" />
     </DialogTrigger>
     <DialogPortal>
-      <DialogOverlay class="spdf spdf-overlay fixed inset-0 z-50 bg-[var(--overlay)] backdrop-blur-[2px]" />
-      <DialogContent
-        :class="
-          cn(
-            'spdf fixed z-50 flex flex-col gap-5 overflow-y-auto border-border bg-popover p-5 text-popover-foreground shadow-2xl spdf-scroll',
-            `spdf-sheet-${props.side}`,
-            sides[props.side],
-            props.class,
-          )
-        "
-      >
+      <DialogOverlay :class="overlayClasses" />
+      <DialogContent :class="contentClasses">
         <div class="grid gap-1.5 pr-8">
           <DialogTitle class="text-base leading-none font-semibold tracking-tight">{{ props.title }}</DialogTitle>
           <DialogDescription :class="props.description ? 'text-sm leading-relaxed text-muted-foreground' : 'sr-only'">

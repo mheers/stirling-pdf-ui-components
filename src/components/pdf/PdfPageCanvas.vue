@@ -66,16 +66,16 @@ function cancel() {
 
 async function loadPage() {
   const document = props.doc;
-  if (!document) return;
-
   const current = ++token;
   cancel();
-  loading.value = true;
+  loading.value = Boolean(document);
   rendered.value = false;
   failed.value = false;
   highlights.value = [];
   pageProxy.value = null;
   viewport.value = null;
+
+  if (!document) return;
 
   try {
     const page = await document.getPage(props.page);
@@ -119,7 +119,13 @@ async function render() {
 
     if (props.textLayer && layer) {
       try {
-        textHandle = await renderPdfTextLayer(page, layer, pageViewport);
+        const handle = await renderPdfTextLayer(page, layer, pageViewport);
+        if (current !== token) {
+          handle?.cancel();
+          layer.replaceChildren();
+          return;
+        }
+        textHandle = handle;
       } catch {
         // Text selection is an enhancement; rendering still succeeded.
       }
@@ -135,6 +141,7 @@ async function render() {
 }
 
 async function loadHighlights() {
+  const current = token;
   const page = pageProxy.value;
   const pageViewport = viewport.value;
   const query = props.searchQuery?.trim();
@@ -146,17 +153,18 @@ async function loadHighlights() {
   try {
     const layer = textLayerEl.value;
     if (props.textLayer && layer?.querySelector('span')) {
-      highlights.value = findTextLayerHighlights(layer, query, root.value ?? undefined);
+      if (current === token) highlights.value = findTextLayerHighlights(layer, query, root.value ?? undefined);
       return;
     }
-    highlights.value = await findPdfTextHighlights(page, pageViewport, query);
+    const boxes = await findPdfTextHighlights(page, pageViewport, query);
+    if (current === token) highlights.value = boxes;
   } catch {
-    highlights.value = [];
+    if (current === token) highlights.value = [];
   }
 }
 
 watch(
-  [() => props.doc, () => props.page, () => props.scale, () => props.rotation],
+  [() => props.doc, () => props.page, () => props.scale, () => props.rotation, () => props.textLayer],
   () => void loadPage(),
   { immediate: true },
 );
@@ -214,8 +222,9 @@ onBeforeUnmount(() => {
       />
     </div>
 
-    <div v-if="!rendered && !failed" class="spdf-skeleton absolute inset-0" aria-hidden="true" />
-    <div v-if="failed" class="absolute inset-0 grid place-items-center bg-muted text-xs text-muted-foreground">
+    <div v-if="!rendered && !failed && props.doc" class="spdf-skeleton absolute inset-0" aria-hidden="true" />
+    <div v-else-if="!rendered && !failed" class="absolute inset-0 bg-muted/30" aria-hidden="true" />
+    <div v-if="failed" role="status" class="absolute inset-0 grid place-items-center bg-muted text-xs text-muted-foreground">
       Could not render page {{ props.page }}
     </div>
     <div v-if="loading" class="sr-only" role="status">Loading page {{ props.page }}</div>

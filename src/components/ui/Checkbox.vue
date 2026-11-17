@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { CheckboxIndicator, CheckboxRoot } from 'reka-ui';
-import { Check, Minus } from 'lucide-vue-next';
+import { Check, Minus } from '@lucide/vue';
 import { cn } from '../../lib/cn';
+import { useSpdfUi } from './context';
 
 interface Props {
   id?: string;
@@ -12,10 +14,23 @@ interface Props {
 
 const props = defineProps<Props>();
 const model = defineModel<boolean | 'indeterminate'>({ default: false });
+const ui = useSpdfUi();
+const hostCheckbox = computed(() => ui.components?.Checkbox);
 </script>
 
 <template>
+  <component
+    :is="hostCheckbox"
+    v-if="hostCheckbox"
+    :id="props.id"
+    :model-value="model"
+    :disabled="props.disabled"
+    :aria-label="props.ariaLabel"
+    :class="props.class"
+    @update:model-value="model = $event as boolean | 'indeterminate'"
+  />
   <CheckboxRoot
+    v-else
     :id="props.id"
     :model-value="model"
     :disabled="props.disabled"

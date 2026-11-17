@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, ref } from 'vue';
+import { computed, nextTick, ref } from 'vue';
 import { cn } from '../../lib/cn';
 import type { TabItem } from './types';
 
@@ -9,6 +9,7 @@ interface Props {
   size?: 'sm' | 'default';
   fullWidth?: boolean;
   ariaLabel?: string;
+  disabled?: boolean;
   class?: string;
 }
 
@@ -21,9 +22,14 @@ const props = withDefaults(defineProps<Props>(), {
 
 const model = defineModel<string>({ required: true });
 const buttons = ref<HTMLButtonElement[]>([]);
+const tabbableIndex = computed(() => {
+  if (props.disabled) return -1;
+  const active = props.items.findIndex((item) => item.value === model.value && !item.disabled);
+  return active !== -1 ? active : props.items.findIndex((item) => !item.disabled);
+});
 
 function select(value: string, disabled?: boolean) {
-  if (disabled) return;
+  if (props.disabled || disabled) return;
   model.value = value;
 }
 
@@ -51,6 +57,7 @@ function onKeydown(event: KeyboardEvent, index: number) {
   <div
     role="tablist"
     :aria-label="props.ariaLabel"
+    :aria-disabled="props.disabled || undefined"
     :class="
       cn(
         'spdf inline-flex items-center gap-1',
@@ -67,8 +74,8 @@ function onKeydown(event: KeyboardEvent, index: number) {
       type="button"
       role="tab"
       :aria-selected="model === item.value"
-      :tabindex="model === item.value ? 0 : -1"
-      :disabled="item.disabled"
+      :tabindex="tabbableIndex === index ? 0 : -1"
+      :disabled="props.disabled || item.disabled"
       :class="
         cn(
           'inline-flex items-center justify-center gap-1.5 whitespace-nowrap font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50',

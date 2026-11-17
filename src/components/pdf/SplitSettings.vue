@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { Files, FileText, Scissors } from 'lucide-vue-next';
+import { Files, FileText, Scissors } from '@lucide/vue';
 import { cn } from '../../lib/cn';
-import { formatPageRange, parsePageRange } from '../../lib/page-range';
+import { parsePageRange } from '../../lib/page-range';
 import type { SplitMode, SplitOptions } from '../../lib/types';
 import Alert from '../ui/Alert.vue';
 import Badge from '../ui/Badge.vue';
@@ -57,10 +57,11 @@ const outputs = computed<{ label: string; pages: string; name: string }[]>(() =>
     if (!rangeResult.value.valid || rangeResult.value.isEmpty) return [];
     for (const range of rangeResult.value.ranges) {
       const label = range.start === range.end ? `Page ${range.start}` : `${range.start}–${range.end}`;
+      const rangeName = range.start === range.end ? String(range.start) : `${range.start}-${range.end}`;
       result.push({
         label,
         pages: String(range.end - range.start + 1),
-        name: `${base}_${formatPageRange([range.start, range.end]).replace('–', '-')}.pdf`,
+        name: `${base}_${rangeName}.pdf`,
       });
     }
     return result;
@@ -70,10 +71,11 @@ const outputs = computed<{ label: string; pages: string; name: string }[]>(() =>
   for (let start = 1; start <= totalPages.value; start += size) {
     const end = Math.min(totalPages.value, start + size - 1);
     const label = start === end ? `Page ${start}` : `${start}–${end}`;
+    const rangeName = start === end ? String(start) : `${start}-${end}`;
     result.push({
       label,
       pages: String(end - start + 1),
-      name: `${base}_${start}-${end}.pdf`,
+      name: `${base}_${rangeName}.pdf`,
     });
   }
   return result;
@@ -105,9 +107,15 @@ function patch<K extends keyof SplitOptions>(key: K, value: SplitOptions[K]) {
     />
 
     <div v-if="options.mode === 'every'" class="grid gap-4">
-      <Field label="Pages per file" description="The last file keeps the remaining pages.">
+      <Field
+        v-slot="{ id, describedBy }"
+        label="Pages per file"
+        description="The last file keeps the remaining pages."
+      >
         <div class="flex flex-wrap items-center gap-2">
           <Input
+            :id="id"
+            :aria-describedby="describedBy"
             :model-value="options.everyN"
             type="number"
             min="1"
@@ -122,6 +130,7 @@ function patch<K extends keyof SplitOptions>(key: K, value: SplitOptions[K]) {
               :key="preset"
               type="button"
               :disabled="props.disabled || preset > totalPages"
+              :aria-pressed="options.everyN === preset"
               :class="
                 cn(
                   'h-6 rounded-full border px-2 text-[11px] font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none disabled:opacity-40',
@@ -153,12 +162,6 @@ function patch<K extends keyof SplitOptions>(key: K, value: SplitOptions[K]) {
     <Alert v-else variant="info" title="One PDF per page">
       A {{ totalPages }}-page document becomes {{ totalPages }} separate PDF files. This is useful for forms, tickets, or scanned batches.
     </Alert>
-
-    <Alert
-      v-if="options.mode === 'ranges' && rangeResult.errors.length"
-      variant="destructive"
-      :title="rangeResult.errors[0]"
-    />
 
     <div class="overflow-hidden rounded-xl border border-border">
       <div class="flex items-center justify-between gap-3 border-b border-border bg-muted/30 px-3.5 py-2.5">

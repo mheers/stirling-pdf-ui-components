@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
-import { PenLine, Trash2, Type, Upload } from 'lucide-vue-next';
+import { PenLine, Trash2, Type, Upload } from '@lucide/vue';
 import { cn } from '../../lib/cn';
 import { readFileAsDataUrl, renderTypedSignature } from '../../lib/canvas';
 import type { SignatureKind, SignatureValue } from '../../lib/types';
@@ -143,6 +143,7 @@ onMounted(() => {
     uploadValue.value = value.dataUrl;
   } else if (value.kind === 'draw' && props.kinds.includes('draw')) {
     active.value = 'draw';
+    drawValue.value = value.dataUrl;
   }
 });
 </script>
@@ -155,6 +156,7 @@ onMounted(() => {
       variant="pills"
       full-width
       aria-label="Signature method"
+      :disabled="props.disabled"
       @update:model-value="selectTab"
     />
 

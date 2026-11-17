@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { Plus, X } from 'lucide-vue-next';
+import { Plus, X } from '@lucide/vue';
 import { cn } from '../../lib/cn';
 import { defaultPdfMetadata } from '../../lib/defaults';
 import type { PdfMetadata } from '../../lib/types';
@@ -39,6 +39,7 @@ function patch<K extends keyof PdfMetadata>(key: K, value: PdfMetadata[K]) {
 }
 
 function addKeywords(raw: string) {
+  if (props.disabled) return;
   const parts = raw
     .split(',')
     .map((part) => part.trim())
@@ -76,6 +77,7 @@ function submit() {
 }
 
 function clear() {
+  keywordDraft.value = '';
   emit('update:modelValue', defaultPdfMetadata());
   emit('reset');
 }

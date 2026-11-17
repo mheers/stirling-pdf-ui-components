@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { Loader2 } from 'lucide-vue-next';
+import { computed } from 'vue';
+import { Loader2 } from '@lucide/vue';
+import { useSpdfUi } from './context';
 
 interface Props {
   size?: number | string;
@@ -7,14 +9,23 @@ interface Props {
   class?: string;
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   size: 16,
   label: 'Loading',
 });
+const ui = useSpdfUi();
+const hostSpinner = computed(() => ui.components?.Spinner);
 </script>
 
 <template>
-  <span class="spdf inline-flex items-center justify-center" role="status" :aria-label="label">
+  <component
+    :is="hostSpinner"
+    v-if="hostSpinner"
+    :size="props.size"
+    :label="props.label"
+    :class="props.class"
+  />
+  <span v-else class="spdf inline-flex items-center justify-center" role="status" :aria-label="label">
     <Loader2
       class="animate-spin text-current"
       :size="typeof size === 'number' ? size : undefined"

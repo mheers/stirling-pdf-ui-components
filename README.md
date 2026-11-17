@@ -4,7 +4,7 @@
 
 A focused library of document surfaces: upload, preview, search, organize, protect, compress, OCR,
 sign, and deliver PDFs. Built with Vue 3, TypeScript, Tailwind v4, and shadcn-vue conventions, with
-a Storybook story for every component.
+Storybook stories for every PDF component and a showcase for the UI primitives.
 
 [![Vue 3](https://img.shields.io/badge/Vue-3-42b883?logo=vue.js&logoColor=white)](https://vuejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
@@ -40,6 +40,9 @@ product different.
   language search, split previews, signature capture.
 - **Designed for shadcn-vue** — semantic CSS variables, `class` passthrough on every component, and
   `cn()` class merging. Works without Tailwind in the host app.
+- **Lean in a shadcn app** — Reka UI, Lucide, `clsx`, `tailwind-merge`, and
+  `class-variance-authority` stay peers, so your app keeps one copy of each. A single-component
+  import adds roughly 5 kB; PDF.js is a separate lazy chunk that only loads with the viewer.
 - **Accessible by default** — labelled controls, roving tab focus, keyboard shortcuts, focus rings,
   reduced-motion support, and an a11y addon in Storybook.
 - **Zero global style leakage** — the shipped stylesheet omits Tailwind preflight and scopes its
@@ -65,6 +68,8 @@ product different.
 - **Vue 3.5+**
 - **Node 22.13+** for development (PDF.js v6 requires it)
 - **pdfjs-dist 5.4+ or 6.x** as a peer dependency for the PDF engine
+- **reka-ui 2.x, @lucide/vue 1.x, clsx, tailwind-merge, and class-variance-authority** — a
+  shadcn-vue app already ships these
 - A bundler that supports ESM (Vite, Nuxt, Rollup, webpack 5, Rspack, …)
 
 The library is client-side only. If you use Nuxt or another SSR framework, render the PDF
@@ -79,6 +84,18 @@ pnpm add @mheers/stirling-pdf-ui-components pdfjs-dist
 ```bash
 npm install @mheers/stirling-pdf-ui-components pdfjs-dist
 ```
+
+### Peer dependencies
+
+The shared shadcn-vue building blocks are peers, not bundled copies:
+
+`reka-ui`, `@lucide/vue`, `clsx`, `tailwind-merge`, `class-variance-authority`, `vue`, and
+`pdfjs-dist`.
+
+A shadcn-vue app already has the first five. Package managers with automatic peer installation
+(pnpm 10, npm 7+, Yarn Berry) install anything missing. With `auto-install-peers=false`, add them
+explicitly. This is what keeps the library lean: importing only `Button` adds roughly 5 kB of code
+on top of the peers your app already ships, instead of a second copy of Reka UI and the icon set.
 
 `pdfjs-dist` is only loaded when a component that renders pages mounts. Components such as
 `PdfDropzone`, `PdfToolGrid`, or `PdfMetadataForm` never import the engine.
@@ -332,6 +349,26 @@ every component follows.
 
 Dark mode is class-based (`.dark`) and also works with `[data-theme='dark']`.
 
+The library follows the Tailwind v4 / current shadcn convention where each token holds a complete
+color value (`oklch(...)`, `#rrggbb`, `rgb(...)`), not a bare HSL triplet. If your app still uses the
+older `--background: 220 14% 96%` convention, move those tokens to complete values first:
+
+```css
+:root {
+  --background: hsl(220 14% 96%);
+  --foreground: hsl(240 10% 4%);
+  /* … */
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}
+```
+
+Most shadcn-vue projects created with Tailwind v4 already use complete values, so no change is
+needed.
+
 | Token group | Variables |
 | --- | --- |
 | Surfaces | `--background`, `--card`, `--popover`, `--muted`, `--accent`, `--secondary` |
@@ -349,10 +386,82 @@ Typography is inherited from your app. The default stack is Inter, with a system
 
 ### Styling rules
 
-- Every component root carries the `.spdf` class. The shipped reset is scoped to it.
+- **Import order:** load your app's Tailwind/theme CSS first, then
+  `@mheers/stirling-pdf-ui-components/style.css`. Tokens are fallbacks and your theme wins either
+  way, but loading the library last keeps its responsive utilities (such as `hidden sm:inline-flex`)
+  intact. If you override an individual utility, do it after the library import.
+- Every component root carries the `.spdf` class. The shipped reset is scoped to `.spdf` and its
+  descendants, so it cannot reset the host page. Content you pass into a slot sits inside that tree;
+  give custom controls there explicit classes if you need your own button or form styling.
+- The theme variables themselves live on `:root` so every component can share them. Override them
+  globally, or on a subtree to theme only part of a page.
+- Library defaults are declared in the lowest `theme` layer with zero specificity. Your shadcn
+  `:root` and `.dark` values win regardless of whether the library stylesheet is imported before or
+  after your app CSS. If you already use shadcn-vue, you do not need to copy or re-map tokens.
 - The stylesheet does **not** include Tailwind preflight, so importing it cannot reset your app.
 - Components do not read raw UI colors. They use semantic tokens, which makes custom themes reliable. Document ink and watermark swatches are intentionally theme-independent.
 - `class` is merged through `cn()`, so your utilities win over library defaults.
+
+## Use your app's primitives
+
+If you already have shadcn-style components and want the PDF surfaces to use them exactly, install
+the provider once. The library maps its internal usage to your components and native recipes.
+
+```ts
+// main.ts
+import { createApp } from 'vue';
+import {
+  SpdfUiPlugin,
+  configurePdfJs,
+  type SpdfUiConfig,
+} from '@mheers/stirling-pdf-ui-components';
+import { Button } from '@/components/ui/button';
+import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+
+const ui: SpdfUiConfig = {
+  components: { Button },
+  classes: {
+    input:
+      'w-full rounded-md border border-input bg-background px-3 h-9 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
+    textarea:
+      'w-full rounded-md border border-input bg-background px-3 py-2 min-h-24 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
+    select:
+      'w-full rounded-md border border-input bg-background pl-3 h-9 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
+    dialog: 'rounded-md border border-border bg-background p-6 shadow-lg',
+    dialogOverlay: 'fixed inset-0 z-50 bg-overlay/50',
+    popover: 'rounded-md border border-border bg-background p-4 shadow-lg',
+    tooltip: 'rounded-md border border-border bg-background px-2 py-1 text-xs shadow-md',
+  },
+};
+
+configurePdfJs({ workerSrc: workerUrl });
+createApp(App).use(SpdfUiPlugin, ui).mount('#app');
+```
+
+`components` accepts `Button`, `Input`, `Textarea`, `Checkbox`, `Switch`, `Slider`, `Badge`,
+`Skeleton`, and `Spinner`. The contracts are intentionally small:
+
+- `Button`: `variant`, `size`, `type`, `disabled`, `class`, default slot. `icon-sm` and `icon-lg`
+  are mapped to `icon`; `loading` adds a spinner and disables the button.
+- `Input`/`Textarea`: `modelValue` + `update:modelValue`, `class`, and native attributes.
+- `Checkbox`/`Switch`/`Slider`: `modelValue` + `update:modelValue`, `disabled`, `aria-label`,
+  `class`. Slider uses a number, not an array.
+- `Badge`: `variant`, default slot. `Skeleton`/`Spinner`: `class`, plus `size`/`label`.
+
+The `classes` recipes are merged after the library defaults with `cn()`, so conflicting Tailwind
+utilities from your recipe win. Dialog and sheet positioning stays with the library; the recipe
+controls the skin. Components not listed above keep the library implementation but use your tokens,
+dark mode, and radius.
+
+For the `odoo` app this plugs into `web/src/components/ui/button/Button.vue` directly: its
+`variant` and `size` names match, and the provider maps the library's `icon-sm` toolbar size to
+your `icon` size.
+
+If your app already renders PDFs with another engine (for example EmbedPDF), use the engine-free
+surfaces — dropzones, file and tool lists, task forms, signature capture, results — and skip
+`PdfViewer`, `PdfThumbnail`, `PdfThumbnailSidebar`, `PdfPageCanvas`, `PdfPageGrid`,
+`PdfPageOrganizer`, and `PdfDocumentInfo` unless you want PDF.js alongside. Only those components
+ever load `pdfjs-dist`.
 
 ## Accessibility
 
@@ -384,6 +493,11 @@ configurePdfJs({
 `cMapUrl` is needed for some CJK documents. `standardFontDataUrl` helps with PDFs that rely on the
 14 standard fonts. `wasmUrl` enables JPEG 2000 and ICC-based rendering in PDF.js 6.
 
+If the console reports `Ensure that the standardFontDataUrl API parameter is provided`, the PDF uses
+a standard font that is not embedded. PDF.js still renders with a local fallback, but setting
+`standardFontDataUrl` gives exact metrics. The demo and Storybook intentionally leave it unset so the
+samples stay fully offline without copying PDF.js font assets into the repository.
+
 ### Shared document cache
 
 Every component that receives the same source shares one `PDFDocumentProxy`. The cache is
@@ -393,8 +507,21 @@ components.
 
 ### Password-protected files
 
-`PdfViewer` catches PDF.js `PasswordException`s and opens an unlock dialog. If you build a custom
-viewer, use `isPdfPasswordError`, `pdfPasswordErrorCode`, and `acquirePdfDocument(source, { password })`.
+`PdfViewer` catches PDF.js `PasswordException`s and opens an unlock dialog. Pass `password` to open
+an encrypted document programmatically, and listen for `unlocked` to share a password entered in the
+dialog with other components:
+
+```vue
+<PdfViewer
+  :source="file"
+  :password="password"
+  @unlocked="password = $event"
+/>
+<PdfDocumentInfo :source="file" :password="password" />
+```
+
+If you build a custom viewer, use `isPdfPasswordError`, `pdfPasswordErrorCode`, and
+`acquirePdfDocument(source, { password })`.
 
 ## Composables and utilities
 
@@ -415,8 +542,8 @@ The full list, including low-level PDF helpers, is in [`src/index.ts`](src/index
 
 ## Storybook
 
-Every component has stories for its important states, and the docs pages include prop tables,
-controls, and the theme toolbar.
+Every PDF component has stories for its important states, and the docs pages include prop tables,
+controls, and the theme toolbar. The UI primitives are collected in the Foundations section.
 
 ```bash
 pnpm dev                 # Storybook at http://localhost:6006

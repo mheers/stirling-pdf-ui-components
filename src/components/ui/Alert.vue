@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { AlertCircle, AlertTriangle, CheckCircle2, Info, X } from 'lucide-vue-next';
+import { AlertCircle, AlertTriangle, CheckCircle2, Info, X } from '@lucide/vue';
 import { cn } from '../../lib/cn';
 
 type AlertVariant = 'default' | 'info' | 'success' | 'warning' | 'destructive';

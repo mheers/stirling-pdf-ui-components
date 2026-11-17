@@ -35,7 +35,9 @@ const formatPresets = [
 ];
 
 const previewText = computed(() => {
-  const page = options.value.startNumber + 2;
+  // The preview shows page 3. Skipping the cover moves it one step closer to
+  // the first printed number.
+  const page = options.value.startNumber + (options.value.skipFirst ? 1 : 2);
   return options.value.format
     .replace(/\{page\}/g, String(page))
     .replace(/\{total\}/g, String(total.value));
@@ -65,9 +67,15 @@ function patch<K extends keyof PageNumberOptions>(key: K, value: PageNumberOptio
 <template>
   <div :class="cn('spdf grid gap-6 lg:grid-cols-[minmax(0,1fr)_260px]', props.class)">
     <div class="grid gap-5">
-      <Field label="Format" description="Use {page} for the page number and {total} for the page count.">
+      <Field
+        v-slot="{ id, describedBy }"
+        label="Format"
+        description="Use {page} for the page number and {total} for the page count."
+      >
         <Input
+          :id="id"
           :model-value="options.format"
+          :aria-describedby="describedBy"
           :disabled="props.disabled"
           placeholder="{page} of {total}"
           class="spdf-tabular"
@@ -79,6 +87,7 @@ function patch<K extends keyof PageNumberOptions>(key: K, value: PageNumberOptio
             :key="preset.value"
             type="button"
             :disabled="props.disabled"
+            :aria-pressed="options.format === preset.value"
             :class="
               cn(
                 'inline-flex h-6 items-center rounded-full border px-2 text-[11px] font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none disabled:opacity-50',
@@ -128,8 +137,9 @@ function patch<K extends keyof PageNumberOptions>(key: K, value: PageNumberOptio
       </div>
 
       <div class="grid gap-4 sm:grid-cols-2">
-        <Field label="Start numbering at">
+        <Field v-slot="{ id }" label="Start numbering at">
           <Input
+            :id="id"
             :model-value="options.startNumber"
             type="number"
             min="1"

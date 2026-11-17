@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import {
   DialogClose,
   DialogContent,
@@ -9,8 +10,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from 'reka-ui';
-import { X } from 'lucide-vue-next';
+import { X } from '@lucide/vue';
 import { cn } from '../../lib/cn';
+import { useSpdfUi } from './context';
 
 interface Props {
   title: string;
@@ -23,6 +25,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), { size: 'md', hideClose: false });
 
 const open = defineModel<boolean>('open', { default: false });
+const ui = useSpdfUi();
 
 const sizes = {
   sm: 'max-w-sm',
@@ -30,6 +33,23 @@ const sizes = {
   lg: 'max-w-2xl',
   xl: 'max-w-4xl',
 };
+
+const overlayClasses = computed(() =>
+  cn(
+    'spdf spdf-overlay fixed inset-0 z-50 bg-[var(--overlay)] backdrop-blur-[2px]',
+    ui.classes?.dialogOverlay,
+  ),
+);
+
+const contentClasses = computed(() =>
+  cn(
+    'spdf spdf-dialog fixed top-1/2 left-1/2 z-50 grid max-h-[min(90vh,52rem)] w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-5 overflow-y-auto spdf-scroll',
+    'rounded-xl border border-border bg-popover p-6 text-popover-foreground shadow-2xl',
+    ui.classes?.dialog,
+    sizes[props.size],
+    props.class,
+  ),
+);
 </script>
 
 <template>
@@ -38,16 +58,8 @@ const sizes = {
       <slot name="trigger" />
     </DialogTrigger>
     <DialogPortal>
-      <DialogOverlay class="spdf spdf-overlay fixed inset-0 z-50 bg-[var(--overlay)] backdrop-blur-[2px]" />
-      <DialogContent
-        :class="
-          cn(
-            'spdf spdf-dialog fixed top-1/2 left-1/2 z-50 grid max-h-[min(90vh,52rem)] w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-5 overflow-y-auto rounded-xl border border-border bg-popover p-6 text-popover-foreground shadow-2xl spdf-scroll',
-            sizes[props.size],
-            props.class,
-          )
-        "
-      >
+      <DialogOverlay :class="overlayClasses" />
+      <DialogContent :class="contentClasses">
         <div class="grid gap-1.5 pr-8">
           <DialogTitle class="text-lg leading-none font-semibold tracking-tight">{{ props.title }}</DialogTitle>
           <DialogDescription :class="props.description ? 'text-sm leading-relaxed text-muted-foreground' : 'sr-only'">

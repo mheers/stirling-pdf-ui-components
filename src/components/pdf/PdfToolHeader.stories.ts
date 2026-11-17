@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite';
 import { fn } from 'storybook/test';
-import { Download, Scissors } from 'lucide-vue-next';
+import { Download, Scissors } from '@lucide/vue';
 import PdfToolHeader from './PdfToolHeader.vue';
 
 const meta = {

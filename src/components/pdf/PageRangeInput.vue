@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, useId } from 'vue';
-import { AlertCircle, Hash } from 'lucide-vue-next';
+import { AlertCircle, Hash } from '@lucide/vue';
 import { cn } from '../../lib/cn';
 import {
   formatPageRange,
@@ -44,6 +44,7 @@ const autoId = useId();
 const inputId = computed(() => props.id ?? `spdf-page-range-${autoId}`);
 const errorId = computed(() => `${inputId.value}-error`);
 const summaryId = computed(() => `${inputId.value}-summary`);
+const descriptionId = computed(() => `${inputId.value}-description`);
 
 const parsed = computed(() => parsePageRange(value.value, props.pageCount));
 const showError = computed(() => !parsed.value.isEmpty && parsed.value.errors.length > 0);
@@ -53,6 +54,16 @@ const stripPages = computed(() => {
   return props.pageCount;
 });
 const selectedSet = computed(() => new Set(parsed.value.pages));
+const describedBy = computed(() => {
+  const ids: string[] = [];
+  if (showError.value) ids.push(errorId.value);
+  else if (parsed.value.count === 0 || !props.showPreview) {
+    // With preview enabled, the visible range badges do not need a description.
+    ids.push(summaryId.value);
+  }
+  if (props.description) ids.push(descriptionId.value);
+  return ids.length ? ids.join(' ') : undefined;
+});
 
 function update(next: string) {
   value.value = next;
@@ -92,7 +103,7 @@ const activeClass = 'border-primary/40 bg-primary/10 text-primary';
         :placeholder="props.placeholder"
         :disabled="props.disabled"
         :aria-invalid="showError || undefined"
-        :aria-describedby="showError ? errorId : summaryId"
+        :aria-describedby="describedBy"
         autocomplete="off"
         spellcheck="false"
         class="spdf-tabular pl-9"
@@ -106,12 +117,14 @@ const activeClass = 'border-primary/40 bg-primary/10 text-primary';
         :key="preset.id"
         type="button"
         :disabled="props.disabled"
+        :aria-pressed="value === preset.value"
         :class="
           cn(
             'inline-flex h-6 items-center rounded-full border px-2 text-[11px] font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50',
             value === preset.value
               ? activeClass
-              : 'border-border bg-background text-muted-foreground hover:border-primary/30 hover:text-foreground',          )
+              : 'border-border bg-background text-muted-foreground hover:border-primary/30 hover:text-foreground',
+          )
         "
         @click="applyPreset(preset)"
       >
@@ -168,6 +181,8 @@ const activeClass = 'border-primary/40 bg-primary/10 text-primary';
     <p v-else-if="!props.showPreview" :id="summaryId" class="text-[11px] text-muted-foreground/80">
       {{ pageSelectionSummary(parsed.count, props.pageCount) }} selected.
     </p>
-    <p v-if="props.description" class="text-xs leading-relaxed text-muted-foreground">{{ props.description }}</p>
+    <p v-if="props.description" :id="descriptionId" class="text-xs leading-relaxed text-muted-foreground">
+      {{ props.description }}
+    </p>
   </div>
 </template>

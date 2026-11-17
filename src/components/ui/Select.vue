@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { ChevronDown } from 'lucide-vue-next';
+import { computed } from 'vue';
+import { ChevronDown } from '@lucide/vue';
 import { cn } from '../../lib/cn';
+import { useSpdfUi } from './context';
 import type { SelectOption } from './types';
 
 defineOptions({ inheritAttrs: false });
@@ -21,6 +23,19 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const model = defineModel<string>();
+const ui = useSpdfUi();
+const selectClasses = computed(() =>
+  cn(
+    'w-full appearance-none rounded-md border border-input bg-background pr-9 pl-3 text-sm text-foreground shadow-xs transition-[color,box-shadow,border-color] duration-150',
+    'focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/30 focus-visible:outline-none',
+    'disabled:cursor-not-allowed disabled:opacity-50',
+    'aria-invalid:border-destructive aria-invalid:ring-destructive/20',
+    ui.classes?.select,
+    props.size === 'sm' ? 'h-8 text-xs' : 'h-9',
+    'pr-9',
+    props.class,
+  ),
+);
 </script>
 
 <template>
@@ -31,15 +46,7 @@ const model = defineModel<string>();
       :value="model ?? ''"
       :disabled="props.disabled"
       :aria-label="props.ariaLabel"
-      :class="
-        cn(
-          'w-full appearance-none rounded-md border border-input bg-background pr-9 pl-3 text-sm text-foreground shadow-xs transition-[color,box-shadow,border-color] duration-150',
-          'focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/30 focus-visible:outline-none',
-          'disabled:cursor-not-allowed disabled:opacity-50',
-          'aria-invalid:border-destructive aria-invalid:ring-destructive/20',
-          props.size === 'sm' ? 'h-8 text-xs' : 'h-9',
-        )
-      "
+      :class="selectClasses"
       @change="model = ($event.target as HTMLSelectElement).value"
     >
       <option value="" disabled>{{ props.placeholder }}</option>

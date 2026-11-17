@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, ref } from 'vue';
+import { computed, nextTick, ref } from 'vue';
 import { cn } from '../../lib/cn';
 import type { SegmentItem } from './types';
 
@@ -20,6 +20,11 @@ const props = withDefaults(defineProps<Props>(), {
 
 const model = defineModel<string>({ required: true });
 const buttons = ref<HTMLButtonElement[]>([]);
+const tabbableIndex = computed(() => {
+  if (props.disabled) return -1;
+  const active = props.items.findIndex((item) => item.value === model.value && !item.disabled);
+  return active !== -1 ? active : props.items.findIndex((item) => !item.disabled);
+});
 
 function select(item: SegmentItem) {
   if (props.disabled || item.disabled) return;
@@ -69,7 +74,7 @@ function onKeydown(event: KeyboardEvent, index: number) {
       :aria-checked="model === item.value"
       :aria-label="item.title ?? item.label"
       :title="item.title"
-      :tabindex="model === item.value ? 0 : -1"
+      :tabindex="tabbableIndex === index ? 0 : -1"
       :disabled="props.disabled || item.disabled"
       :class="
         cn(

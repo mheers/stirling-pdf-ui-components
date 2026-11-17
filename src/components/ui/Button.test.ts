@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { mount } from '@vue/test-utils';
+import { h } from 'vue';
 import Button from './Button.vue';
 
 describe('Button', () => {
@@ -26,5 +27,16 @@ describe('Button', () => {
     const wrapper = mount(Button, { props: { loading: true }, slots: { default: 'Working' } });
     expect(wrapper.get('button').attributes('disabled')).toBeDefined();
     expect(wrapper.get('button').attributes('aria-busy')).toBe('true');
+  });
+
+  it('carries disabled state through asChild', () => {
+    const wrapper = mount(Button, {
+      props: { asChild: true, disabled: true },
+      slots: { default: () => h('a', { href: '/docs' }, 'Docs') },
+    });
+
+    const link = wrapper.get('a');
+    expect(link.attributes('disabled')).toBeDefined();
+    expect(link.attributes('aria-disabled')).toBe('true');
   });
 });

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { Check, Download, Eye, FileText, Files, RotateCcw } from 'lucide-vue-next';
+import { Check, Download, Eye, FileText, Files, RotateCcw } from '@lucide/vue';
 import { cn } from '../../lib/cn';
 import { formatBytes, formatDuration, savedPercent, truncateMiddle } from '../../lib/format';
 import type { PdfResult } from '../../lib/types';
@@ -117,7 +117,7 @@ function downloadAll() {
             v-if="result.url || result.preview"
             variant="ghost"
             size="icon-sm"
-            aria-label="Preview result"
+            :aria-label="`Preview ${result.name}`"
             @click="emit('preview', result)"
           >
             <Eye />
@@ -125,6 +125,7 @@ function downloadAll() {
           <Button
             :variant="props.results.length === 1 ? 'default' : 'outline'"
             size="sm"
+            :aria-label="`Download ${result.name}`"
             @click="download(result)"
           >
             <Download class="size-3.5" />

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref, watch } from 'vue';
-import { X } from 'lucide-vue-next';
+import { X } from '@lucide/vue';
 import { cn } from '../../lib/cn';
 import type { PdfSource } from '../../lib/types';
 import Button from '../ui/Button.vue';
@@ -46,7 +46,14 @@ function scrollToCurrent() {
     const visibleTop = container.scrollTop;
     const visibleBottom = visibleTop + container.clientHeight;
     if (top < visibleTop || top + element.offsetHeight > visibleBottom) {
-      container.scrollTo({ top: Math.max(0, top - 12), behavior: 'smooth' });
+      const reduceMotion =
+        typeof window !== 'undefined' &&
+        typeof window.matchMedia === 'function' &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      container.scrollTo({
+        top: Math.max(0, top - 12),
+        behavior: reduceMotion ? 'auto' : 'smooth',
+      });
     }
   });
 }
@@ -69,33 +76,33 @@ onMounted(scrollToCurrent);
       </Tooltip>
     </div>
 
-      <div ref="scrollContainer" class="spdf-scroll relative min-h-0 flex-1 overflow-y-auto p-3">
-        <div v-if="!props.pageCount" class="grid gap-4">
-          <Skeleton v-for="index in 4" :key="index" class="aspect-[0.707] w-full rounded-sm" />
-        </div>
-        <div v-else class="grid gap-4">
-          <div
-            v-for="page in props.pageCount"
-            :key="page"
-            :ref="(element) => setElement(page, element)"
-            style="content-visibility: auto; contain-intrinsic-size: 190px"
-          >
-            <PdfThumbnail
-              :source="props.source"
-              :page="page"
-              :width="190"
-              :selected="page === props.currentPage"
-              :password="props.password"
-              fluid
-              @select="emit('select', $event.page)"
-              @open="emit('select', page)"
-            />
-          </div>
+    <div ref="scrollContainer" class="spdf-scroll relative min-h-0 flex-1 overflow-y-auto p-3">
+      <div v-if="!props.pageCount" class="grid gap-4">
+        <Skeleton v-for="index in 4" :key="index" class="aspect-[0.707] w-full rounded-sm" />
+      </div>
+      <div v-else class="grid gap-4">
+        <div
+          v-for="page in props.pageCount"
+          :key="page"
+          :ref="(element) => setElement(page, element)"
+          style="content-visibility: auto; contain-intrinsic-size: 190px"
+        >
+          <PdfThumbnail
+            :source="props.source"
+            :page="page"
+            :width="190"
+            :selected="page === props.currentPage"
+            :password="props.password"
+            fluid
+            @select="emit('select', $event.page)"
+            @open="emit('select', page)"
+          />
         </div>
       </div>
+    </div>
 
-      <div v-if="$slots.footer" class="shrink-0 border-t border-border p-3">
-        <slot name="footer" />
-      </div>
-    </aside>
+    <div v-if="$slots.footer" class="shrink-0 border-t border-border p-3">
+      <slot name="footer" />
+    </div>
+  </aside>
 </template>

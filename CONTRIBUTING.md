@@ -51,14 +51,16 @@ components emit the options; they never pretend to process a file.
 
 ### Story requirements
 
-Every exported component gets a co-located `*.stories.ts` file with:
+Every exported PDF component gets a co-located `*.stories.ts` file with:
 
 1. A realistic default story using the sample PDFs in `public/samples`.
 2. At least one edge state: loading, error, empty, disabled, or selected.
 3. A docs description that explains when to use it.
 4. `tags: ['autodocs']` and typed args.
 
-Stories should never depend on a network request other than the static sample files.
+New UI primitives are added to `src/storybook/PrimitivesShowcase.vue` instead of getting a
+standalone story file. Stories should never depend on a network request other than the static
+sample files.
 
 ### Tests
 

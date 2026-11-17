@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { RadioGroupIndicator, RadioGroupItem, RadioGroupRoot } from 'reka-ui';
-import { Circle } from 'lucide-vue-next';
+import { Circle } from '@lucide/vue';
 import { cn } from '../../lib/cn';
 import type { RadioItem } from './types';
 
@@ -9,6 +9,7 @@ interface Props {
   variant?: 'list' | 'cards';
   orientation?: 'vertical' | 'horizontal';
   ariaLabel?: string;
+  disabled?: boolean;
   class?: string;
 }
 
@@ -26,6 +27,7 @@ const model = defineModel<string>();
     :model-value="model"
     :orientation="props.orientation"
     :aria-label="props.ariaLabel"
+    :disabled="props.disabled"
     :class="
       cn(
         'spdf grid gap-2',
@@ -40,7 +42,7 @@ const model = defineModel<string>();
       v-for="item in props.items"
       :key="item.value"
       :value="item.value"
-      :disabled="item.disabled"
+      :disabled="props.disabled || item.disabled"
       :aria-label="item.label"
       :class="
         cn(

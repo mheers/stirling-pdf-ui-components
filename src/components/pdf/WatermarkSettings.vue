@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
-import { Image as ImageIcon, Trash2, Type } from 'lucide-vue-next';
+import { Image as ImageIcon, Trash2, Type } from '@lucide/vue';
 import { cn } from '../../lib/cn';
 import type { WatermarkOptions } from '../../lib/types';
 import Button from '../ui/Button.vue';
@@ -66,12 +66,14 @@ function patch<K extends keyof WatermarkOptions>(key: K, value: WatermarkOptions
 }
 
 function onImage(files: File[]) {
+  if (props.disabled) return;
   const file = files[0];
   if (!file) return;
   update({ ...options.value, image: file, imageUrl: '' });
 }
 
 function removeImage() {
+  if (props.disabled) return;
   update({ ...options.value, image: null, imageUrl: '' });
 }
 
@@ -97,8 +99,10 @@ const previewStyle = computed(() => ({
       />
 
       <template v-if="options.type === 'text'">
-        <Field label="Watermark text">
+        <Field v-slot="{ id, describedBy }" label="Watermark text">
           <Input
+            :id="id"
+            :aria-describedby="describedBy"
             :model-value="options.text"
             placeholder="e.g. CONFIDENTIAL"
             :disabled="props.disabled"
@@ -115,18 +119,24 @@ const previewStyle = computed(() => ({
                 v-for="color in colorSwatches"
                 :key="color"
                 type="button"
-                class="size-6 rounded-full border border-border ring-offset-2 ring-offset-background transition-transform hover:scale-110 focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none"
+                :disabled="props.disabled"
+                class="size-6 rounded-full border border-border ring-offset-2 ring-offset-background transition-transform hover:scale-110 focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40"
                 :class="options.color === color ? 'ring-2 ring-primary' : ''"
                 :style="{ backgroundColor: color }"
                 :aria-label="`Use color ${color}`"
                 :aria-pressed="options.color === color"
                 @click="patch('color', color)"
               />
-              <label class="relative size-6 cursor-pointer overflow-hidden rounded-full border border-dashed border-border" aria-label="Custom color">
+              <label
+                class="relative size-6 overflow-hidden rounded-full border border-dashed border-border"
+                :class="props.disabled ? 'cursor-not-allowed opacity-40' : 'cursor-pointer'"
+                aria-label="Custom color"
+              >
                 <input
                   type="color"
                   :value="options.color"
-                  class="absolute inset-0 size-full cursor-pointer opacity-0"
+                  :disabled="props.disabled"
+                  class="absolute inset-0 size-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
                   @input="patch('color', ($event.target as HTMLInputElement).value)"
                 />
                 <span class="grid size-full place-items-center text-[10px] font-medium text-muted-foreground">+</span>
@@ -168,7 +178,7 @@ const previewStyle = computed(() => ({
             <p class="truncate text-sm font-medium text-foreground">{{ options.image?.name ?? 'Watermark image' }}</p>
             <p class="text-xs text-muted-foreground">Transparent PNG works best.</p>
           </div>
-          <Button variant="ghost" size="icon-sm" aria-label="Remove image" @click="removeImage">
+          <Button variant="ghost" size="icon-sm" :disabled="props.disabled" aria-label="Remove image" @click="removeImage">
             <Trash2 />
           </Button>
         </div>

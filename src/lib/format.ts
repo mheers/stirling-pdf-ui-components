@@ -5,7 +5,10 @@ export function formatBytes(bytes: number | null | undefined, decimals = 1): str
   if (!Number.isFinite(bytes)) return '—';
 
   const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-  const index = Math.min(Math.floor(Math.log(Math.abs(bytes)) / Math.log(1024)), units.length - 1);
+  const index = Math.max(
+    0,
+    Math.min(Math.floor(Math.log(Math.abs(bytes)) / Math.log(1024)), units.length - 1),
+  );
   const value = bytes / 1024 ** index;
   const rounded = index === 0 ? Math.round(value) : Number(value.toFixed(decimals));
   return `${rounded} ${units[index]}`;
@@ -33,13 +36,16 @@ export function savedPercent(original: number | null | undefined, result: number
 /** Truncate a filename in the middle while keeping the extension visible. */
 export function truncateMiddle(value: string, maxLength = 36): string {
   if (value.length <= maxLength) return value;
+  // There is no room for an ellipsis plus a meaningful head/tail.
+  if (maxLength <= 4) return value.slice(0, Math.max(0, maxLength));
   const dot = value.lastIndexOf('.');
   const extension = dot > 0 && value.length - dot <= 8 ? value.slice(dot) : '';
   const stem = extension ? value.slice(0, dot) : value;
-  const available = Math.max(4, maxLength - extension.length - 1);
+  const available = Math.max(2, maxLength - extension.length - 1);
   const head = Math.ceil(available * 0.62);
   const tail = available - head;
-  return `${stem.slice(0, head)}…${stem.slice(-tail)}${extension}`;
+  const output = `${stem.slice(0, head)}…${stem.slice(-tail)}${extension}`;
+  return output.length <= maxLength ? output : value.slice(0, maxLength);
 }
 
 /** `1 page` / `12 pages`. */

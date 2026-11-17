@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
-import { PenLine, RotateCcw, Trash2 } from 'lucide-vue-next';
+import { PenLine, RotateCcw, Trash2 } from '@lucide/vue';
 import { useElementSize } from '../../composables/useElementSize';
 import { canvasToTrimmedDataUrl } from '../../lib/canvas';
 import { cn } from '../../lib/cn';
@@ -45,6 +45,7 @@ const drawing = ref(false);
 const { width } = useElementSize(wrapper);
 
 let lastPoint: Point | null = null;
+let lastEmitted = '';
 
 const hasInk = computed(() => strokes.value.some((stroke) => stroke.length > 0));
 
@@ -127,12 +128,17 @@ function exportValue(): string {
 }
 
 function emitValue() {
-  model.value = exportValue();
+  const value = exportValue();
+  lastEmitted = value;
+  model.value = value;
 }
 
 function onPointerDown(event: PointerEvent) {
   if (props.disabled) return;
   event.preventDefault();
+  // A restored signature is displayed as an image. Drawing starts a fresh
+  // signature, so the restored image is replaced.
+  if (model.value && !hasInk.value) model.value = '';
   canvas.value?.setPointerCapture(event.pointerId);
   drawing.value = true;
   lastPoint = pointFromEvent(event);
@@ -169,6 +175,9 @@ function finishStroke() {
 function clear() {
   if (props.disabled) return;
   strokes.value = [[]];
+  drawing.value = false;
+  lastPoint = null;
+  lastEmitted = '';
   redraw();
   model.value = '';
   emit('clear');
@@ -184,11 +193,22 @@ function undo() {
 
 function reset() {
   strokes.value = [[]];
+  drawing.value = false;
+  lastPoint = null;
   redraw();
 }
 
 function onExternalValue(value: string | undefined) {
-  if (!value && hasInk.value) reset();
+  if (!value) {
+    if (hasInk.value) reset();
+    lastEmitted = '';
+    return;
+  }
+  // Ignore the echo of our own export; anything else is a parent-supplied
+  // replacement, which supersedes the local strokes.
+  if (value === lastEmitted) return;
+  reset();
+  lastEmitted = value;
 }
 
 watch(() => props.height, setupCanvas);
@@ -230,8 +250,14 @@ defineExpose({
         @pointerup="finishStroke"
         @pointercancel="finishStroke"
       />
+      <img
+        v-if="!hasInk && model"
+        :src="model"
+        alt="Current signature"
+        class="pointer-events-none absolute inset-0 size-full object-contain p-2"
+      />
       <div
-        v-if="!hasInk && !props.disabled"
+        v-if="!hasInk && !model && !props.disabled"
         class="pointer-events-none absolute inset-0 grid place-items-center"
         aria-hidden="true"
       >

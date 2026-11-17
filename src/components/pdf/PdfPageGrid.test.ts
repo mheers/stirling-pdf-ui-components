@@ -24,10 +24,16 @@ describe('PdfPageGrid', () => {
     let selected = (wrapper.vm as unknown as { selected: number[] }).selected;
     expect(selected).toEqual([2, 3, 4]);
 
+    // The anchor stays at page 2, so a second shift-click extends from there.
+    await wrapper.get('button[aria-label^="Page 3"]').trigger('click', { shiftKey: true });
+    await nextTick();
+    selected = (wrapper.vm as unknown as { selected: number[] }).selected;
+    expect(selected).toEqual([2, 3]);
+
     await wrapper.get('button[aria-label^="Page 3"]').trigger('click', { ctrlKey: true });
     await nextTick();
 
     selected = (wrapper.vm as unknown as { selected: number[] }).selected;
-    expect(selected).toEqual([2, 4]);
+    expect(selected).toEqual([2]);
   });
 });

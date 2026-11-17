@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { FileText } from 'lucide-vue-next';
+import { FileText } from '@lucide/vue';
 import { usePdfDocument } from '../../composables/usePdfDocument';
 import { cn } from '../../lib/cn';
 import { inDocumentOrder, updateSelection } from '../../lib/selection';
@@ -84,7 +84,7 @@ function onClick(page: number, event: MouseEvent) {
   });
 
   selected.value = inDocumentOrder(result.selection, all).map(Number);
-  anchor.value = page;
+  anchor.value = result.anchor === null ? null : Number(result.anchor);
 }
 </script>
 

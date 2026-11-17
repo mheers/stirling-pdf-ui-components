@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '../../lib/cn';
+import { useSpdfUi } from './context';
 
 const badgeVariants = cva(
   'spdf inline-flex w-fit shrink-0 items-center gap-1 whitespace-nowrap rounded-full border px-2 py-0.5 text-[11px] font-medium transition-colors [&_svg]:size-3 [&_svg]:shrink-0',
@@ -32,10 +34,20 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), { variant: 'default' });
+const ui = useSpdfUi();
+const hostBadge = computed(() => ui.components?.Badge);
 </script>
 
 <template>
-  <span :class="cn(badgeVariants({ variant: props.variant }), props.class)">
+  <component
+    :is="hostBadge"
+    v-if="hostBadge"
+    :variant="props.variant"
+    :class="props.class"
+  >
+    <slot />
+  </component>
+  <span v-else :class="cn(badgeVariants({ variant: props.variant }), props.class)">
     <slot />
   </span>
 </template>

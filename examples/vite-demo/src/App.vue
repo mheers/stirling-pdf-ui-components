@@ -3,12 +3,12 @@ import { computed, onMounted, ref, watch } from 'vue';
 import {
   ArrowUpRight,
   FileText,
-  Github,
+  GitBranch,
   Layers,
   Moon,
   Sparkles,
   Sun,
-} from 'lucide-vue-next';
+} from '@lucide/vue';
 import {
   Badge,
   Button,
@@ -34,13 +34,14 @@ const filename = computed(() =>
 );
 const dark = ref(false);
 const tab = ref('view');
+const password = ref<string | undefined>();
 
 const tabs: TabItem[] = [
   { value: 'view', label: 'View', icon: FileText },
   { value: 'organize', label: 'Organize', icon: Layers },
 ];
 
-const { numPages } = usePdfDocument(() => source.value);
+const { numPages } = usePdfDocument(() => source.value, { password });
 const pageCount = computed(() => numPages.value || 0);
 
 function onFiles(files: File[]) {
@@ -62,6 +63,7 @@ onMounted(() => {
 
 watch(source, () => {
   tab.value = 'view';
+  password.value = undefined;
 });
 </script>
 
@@ -87,7 +89,7 @@ watch(source, () => {
             rel="noreferrer"
             class="hidden h-9 items-center gap-1.5 rounded-md px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:inline-flex"
           >
-            <Github class="size-3.5" />
+            <GitBranch class="size-3.5" />
             GitHub
             <ArrowUpRight class="size-3" />
           </a>
@@ -111,7 +113,7 @@ watch(source, () => {
           @files="onFiles"
         />
 
-        <PdfDocumentInfo :source="source" />
+        <PdfDocumentInfo :source="source" :password="password" />
 
         <Card>
           <CardHeader class="pb-3">
@@ -144,13 +146,16 @@ watch(source, () => {
           class="h-[calc(100vh-13rem)] min-h-[560px]"
           :source="source"
           :filename="filename"
+          :password="password"
           show-thumbnails
           allow-print
+          @unlocked="password = $event"
         />
         <PdfPageOrganizer
           v-else
           :source="source"
           :page-count="pageCount"
+          :password="password"
           :thumbnail-width="140"
         />
       </section>

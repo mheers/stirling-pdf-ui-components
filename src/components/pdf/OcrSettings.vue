@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { Check, Languages, Search, X } from 'lucide-vue-next';
+import { Check, Languages, Search, X } from '@lucide/vue';
 import { cn } from '../../lib/cn';
 import { COMMON_OCR_LANGUAGES } from '../../lib/defaults';
 import type { OcrLanguage, OcrMode, OcrOptions } from '../../lib/types';
@@ -69,6 +69,7 @@ function patch<K extends keyof OcrOptions>(key: K, value: OcrOptions[K]) {
 }
 
 function toggleLanguage(code: string) {
+  if (props.disabled) return;
   const next = options.value.languages.includes(code)
     ? options.value.languages.filter((language) => language !== code)
     : [...options.value.languages, code];
@@ -104,7 +105,8 @@ const optimizeItems = [
           {{ language.name }}
           <button
             type="button"
-            class="grid size-4 place-items-center rounded-full transition-colors hover:bg-primary/15 focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none"
+            :disabled="props.disabled"
+            class="grid size-4 place-items-center rounded-full transition-colors hover:bg-primary/15 focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40"
             :aria-label="`Remove ${language.name}`"
             @click="toggleLanguage(language.code)"
           >
@@ -119,6 +121,7 @@ const optimizeItems = [
           v-model="search"
           placeholder="Search languages…"
           class="h-8 pl-8 text-xs"
+          :disabled="props.disabled"
           aria-label="Search OCR languages"
         />
       </div>
@@ -152,6 +155,10 @@ const optimizeItems = [
       </div>
     </div>
 
+    <Alert v-if="!options.languages.length" variant="warning" title="Choose at least one language">
+      OCR needs a language model. Select every language that appears in the document.
+    </Alert>
+
     <div class="grid gap-2">
       <span class="text-sm font-medium text-foreground">OCR mode</span>
       <RadioGroup
@@ -159,6 +166,7 @@ const optimizeItems = [
         :items="modes"
         variant="cards"
         aria-label="OCR mode"
+        :disabled="props.disabled"
         @update:model-value="patch('mode', $event as OcrMode)"
       />
     </div>

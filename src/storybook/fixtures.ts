@@ -16,7 +16,7 @@ import {
   Scissors,
   ShieldCheck,
   Wrench,
-} from 'lucide-vue-next';
+} from '@lucide/vue';
 import type { PageOrganizerItem, PdfFileDescriptor, PdfMetadata, PdfResult, PdfTool } from '../lib/types';
 import type { PdfSearchResults } from '../lib/pdf';
 

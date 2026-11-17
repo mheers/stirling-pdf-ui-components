@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { AlertCircle, CloudUpload, FileUp, Loader2, UploadCloud } from 'lucide-vue-next';
+import { AlertCircle, CloudUpload, FileUp, Loader2, UploadCloud } from '@lucide/vue';
 import { cn } from '../../lib/cn';
 import { formatBytes } from '../../lib/format';
 import type { PdfDropzoneReject } from '../../lib/types';
@@ -48,9 +48,14 @@ const acceptLabel = computed(() =>
     .join(', '),
 );
 
+const wantsImages = computed(() =>
+  props.accept.some((rule) => rule.toLowerCase().startsWith('image/')),
+);
+
 const resolvedTitle = computed(() => {
   if (props.title) return props.title;
-  return props.compact ? 'Upload an image' : props.multiple ? 'Drop your PDFs here' : 'Drop a PDF here';
+  if (props.compact) return wantsImages.value ? 'Upload an image' : 'Upload a file';
+  return props.multiple ? 'Drop your PDFs here' : 'Drop a PDF here';
 });
 
 const resolvedDescription = computed(() => {
@@ -60,8 +65,13 @@ const resolvedDescription = computed(() => {
 
 const resolvedHint = computed(() => {
   if (props.hint) return props.hint;
-  const count = props.maxFiles > 1 ? `up to ${props.maxFiles} files · ` : '';
-  return `${acceptLabel.value} · ${count}max ${formatBytes(props.maxSize)}`;
+  return [
+    acceptLabel.value,
+    props.maxFiles > 1 ? `up to ${props.maxFiles} files` : null,
+    `max ${formatBytes(props.maxSize)}`,
+  ]
+    .filter(Boolean)
+    .join(' · ');
 });
 
 function matchesAccept(file: File): boolean {
@@ -195,7 +205,7 @@ const rootClasses = computed(() =>
 
     <div
       role="button"
-      :tabindex="props.disabled ? -1 : 0"
+      :tabindex="props.disabled || props.loading ? -1 : 0"
       :aria-disabled="props.disabled || props.loading"
       :aria-label="`${resolvedTitle}. ${resolvedDescription}. ${resolvedHint}`"
       :class="rootClasses"

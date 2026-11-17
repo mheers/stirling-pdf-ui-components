@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { ArrowRight, FileText } from 'lucide-vue-next';
+import { ArrowRight, FileText } from '@lucide/vue';
 import { cn } from '../../lib/cn';
 import type { PdfTool } from '../../lib/types';
 import Badge from '../ui/Badge.vue';
@@ -45,6 +45,7 @@ function onClick(event: MouseEvent) {
     :href="props.tool.href"
     :type="props.tool.href ? undefined : 'button'"
     :disabled="props.tool.href ? undefined : props.tool.disabled"
+    :tabindex="props.tool.href && props.tool.disabled ? -1 : undefined"
     :aria-disabled="props.tool.disabled || undefined"
     :class="
       cn(
@@ -52,6 +53,7 @@ function onClick(event: MouseEvent) {
         'hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-md',
         'focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/30 focus-visible:outline-none',
         'disabled:pointer-events-none disabled:opacity-50',
+        props.tool.disabled ? 'pointer-events-none opacity-50' : '',
         props.class,
       )
     "

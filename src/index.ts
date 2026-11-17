@@ -5,6 +5,7 @@ export { default as Alert } from './components/ui/Alert.vue';
 export { default as Badge } from './components/ui/Badge.vue';
 export { default as Button } from './components/ui/Button.vue';
 export { buttonVariants } from './components/ui/button-variants';
+export type { ButtonVariants } from './components/ui/button-variants';
 export { default as Card } from './components/ui/Card.vue';
 export { default as CardContent } from './components/ui/CardContent.vue';
 export { default as CardDescription } from './components/ui/CardDescription.vue';
@@ -34,6 +35,17 @@ export { default as Tabs } from './components/ui/Tabs.vue';
 export { default as Textarea } from './components/ui/Textarea.vue';
 export { default as Tooltip } from './components/ui/Tooltip.vue';
 export type { RadioItem, SegmentItem, SelectOption, TabItem } from './components/ui/types';
+export {
+  provideSpdfUi,
+  spdfUiKey,
+  SpdfUiPlugin,
+  useSpdfUi,
+} from './components/ui/context';
+export type {
+  SpdfUiClassRecipes,
+  SpdfUiComponents,
+  SpdfUiConfig,
+} from './components/ui/context';
 
 // PDF components
 export { default as CompressionSettings } from './components/pdf/CompressionSettings.vue';
@@ -107,7 +119,14 @@ export type {
 } from './lib/pdf';
 export { PdfConfigurationError } from './lib/pdf';
 
-export { formatBytes, formatDuration, pageCountLabel, savedPercent, truncateMiddle } from './lib/format';
+export {
+  clampPercent,
+  formatBytes,
+  formatDuration,
+  pageCountLabel,
+  savedPercent,
+  truncateMiddle,
+} from './lib/format';
 export { cn } from './lib/cn';
 export {
   canvasToTrimmedDataUrl,
@@ -115,6 +134,7 @@ export {
   readFileAsDataUrl,
   renderTypedSignature,
 } from './lib/canvas';
+export type { TrimCanvasOptions } from './lib/canvas';
 export {
   COMMON_OCR_LANGUAGES,
   defaultCompressionOptions,
@@ -135,4 +155,5 @@ export {
 export type { PageRange, PageRangeParseResult, PageRangePreset } from './lib/page-range';
 export { inDocumentOrder, updateSelection } from './lib/selection';
 export type { SelectionModifiers, SelectionResult } from './lib/selection';
+export { PDF_POSITIONS } from './lib/types';
 export type * from './lib/types';

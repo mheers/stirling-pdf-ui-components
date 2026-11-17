@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import {
   TooltipArrow,
   TooltipContent,
@@ -7,6 +8,8 @@ import {
   TooltipRoot,
   TooltipTrigger,
 } from 'reka-ui';
+import { cn } from '../../lib/cn';
+import { useSpdfUi } from './context';
 
 interface Props {
   content?: string;
@@ -24,6 +27,14 @@ const props = withDefaults(defineProps<Props>(), {
   sideOffset: 6,
   disabled: false,
 });
+const ui = useSpdfUi();
+const contentClasses = computed(() =>
+  cn(
+    'spdf spdf-popover z-[80] max-w-xs',
+    'rounded-md border border-border bg-popover px-2.5 py-1.5 text-xs leading-snug text-popover-foreground shadow-md',
+    ui.classes?.tooltip,
+  ),
+);
 </script>
 
 <template>
@@ -38,7 +49,7 @@ const props = withDefaults(defineProps<Props>(), {
           :side="props.side"
           :align="props.align"
           :side-offset="props.sideOffset"
-          class="spdf spdf-popover z-[80] max-w-xs rounded-md border border-border bg-popover px-2.5 py-1.5 text-xs leading-snug text-popover-foreground shadow-md"
+          :class="contentClasses"
         >
           <slot name="content">{{ props.content }}</slot>
           <TooltipArrow class="fill-popover" :width="10" :height="5" />

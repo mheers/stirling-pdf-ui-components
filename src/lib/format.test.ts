@@ -14,6 +14,7 @@ describe('formatBytes', () => {
     expect(formatBytes(512)).toBe('512 B');
     expect(formatBytes(1024)).toBe('1 KB');
     expect(formatBytes(2_411_520)).toBe('2.3 MB');
+    expect(formatBytes(0.5)).toBe('1 B');
     expect(formatBytes(undefined)).toBe('—');
   });
 });
@@ -45,6 +46,10 @@ describe('truncateMiddle', () => {
 
   it('leaves short names alone', () => {
     expect(truncateMiddle('invoice.pdf', 40)).toBe('invoice.pdf');
+  });
+
+  it('never exceeds a tiny budget', () => {
+    expect(truncateMiddle('a-very-long-name.pdf', 4)).toHaveLength(4);
   });
 });
 

@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { SwitchRoot, SwitchThumb } from 'reka-ui';
 import { cn } from '../../lib/cn';
+import { useSpdfUi } from './context';
 
 interface Props {
   id?: string;
@@ -10,10 +12,22 @@ interface Props {
 
 const props = defineProps<Props>();
 const model = defineModel<boolean>({ default: false });
+const ui = useSpdfUi();
+const hostSwitch = computed(() => ui.components?.Switch);
 </script>
 
 <template>
+  <component
+    :is="hostSwitch"
+    v-if="hostSwitch"
+    :id="props.id"
+    :model-value="model"
+    :disabled="props.disabled"
+    :class="props.class"
+    @update:model-value="model = $event as boolean"
+  />
   <SwitchRoot
+    v-else
     :id="props.id"
     :model-value="model"
     :disabled="props.disabled"

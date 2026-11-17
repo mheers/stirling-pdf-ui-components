@@ -23,8 +23,11 @@ const errorId = computed(() => `${id.value}-error`);
 const hintId = computed(() => `${id.value}-hint`);
 const describedBy = computed(() => {
   if (props.error) return errorId.value;
-  if (props.description) return descriptionId.value;
-  return props.hint ? hintId.value : undefined;
+  const ids = [
+    props.description ? descriptionId.value : null,
+    props.hint ? hintId.value : null,
+  ].filter((id): id is string => !!id);
+  return ids.length ? ids.join(' ') : undefined;
 });
 </script>
 

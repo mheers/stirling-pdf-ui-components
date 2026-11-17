@@ -24,7 +24,7 @@ const preview: Preview = {
         order: [
           'Introduction',
           'Foundations',
-          ['Colors', 'Primitives'],
+          ['Colors', 'Primitives', 'Host primitives'],
           'Components',
           [
             'PdfDropzone',

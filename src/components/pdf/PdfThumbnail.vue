@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, shallowRef, watch } from 'vue';
 import type { PDFPageProxy } from 'pdfjs-dist';
-import { AlertCircle, Check } from 'lucide-vue-next';
+import { AlertCircle, Check } from '@lucide/vue';
 import { useElementSize } from '../../composables/useElementSize';
 import { useInView } from '../../composables/useInView';
 import { usePdfDocument } from '../../composables/usePdfDocument';
@@ -157,6 +157,7 @@ onBeforeUnmount(() => {
 });
 
 const displayError = computed(() => renderError.value || !!documentError.value);
+const hasSource = computed(() => !!props.source);
 </script>
 
 <template>
@@ -187,7 +188,14 @@ const displayError = computed(() => renderError.value || !!documentError.value);
         :class="rendered ? 'opacity-100' : 'opacity-0'"
         aria-hidden="true"
       />
-      <div v-if="!rendered && !displayError" class="spdf-skeleton absolute inset-0" aria-hidden="true" />
+      <div v-if="!rendered && !displayError && hasSource" class="spdf-skeleton absolute inset-0" aria-hidden="true" />
+      <div
+        v-else-if="!rendered && !displayError"
+        class="absolute inset-0 grid place-items-center bg-muted/40 text-[10px] font-medium text-muted-foreground/70"
+        aria-hidden="true"
+      >
+        {{ props.page }}
+      </div>
       <div v-if="displayError" class="absolute inset-0 grid place-items-center bg-muted text-muted-foreground">
         <div class="grid justify-items-center gap-1.5">
           <AlertCircle class="size-5" aria-hidden="true" />

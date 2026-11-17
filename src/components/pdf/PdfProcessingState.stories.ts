@@ -46,6 +46,15 @@ export const WithoutSteps: Story = {
   args: { steps: undefined },
 };
 
+export const Idle: Story = {
+  args: {
+    status: 'idle',
+    progress: undefined,
+    steps: undefined,
+    cancellable: false,
+  },
+};
+
 export const Success: Story = {
   args: {
     status: 'success',

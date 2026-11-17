@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { Check, Eye, EyeOff, KeyRound, Lock, ShieldCheck } from 'lucide-vue-next';
+import { Check, Eye, EyeOff, KeyRound, Lock, ShieldCheck } from '@lucide/vue';
 import { cn } from '../../lib/cn';
 import type { PdfPasswordOptions, PdfPermissions } from '../../lib/types';
 import Alert from '../ui/Alert.vue';
@@ -36,7 +36,7 @@ const emit = defineEmits<{
 
 const visible = ref(false);
 const capsLock = ref(false);
-const showOwner = ref(false);
+const showOwner = ref(!!props.modelValue.ownerPassword);
 const validationError = ref('');
 
 const password = computed(() => props.modelValue.password);
@@ -81,6 +81,7 @@ function patch<K extends keyof PdfPasswordOptions>(key: K, value: PdfPasswordOpt
 }
 
 function patchPermission(key: keyof PdfPermissions) {
+  if (props.disabled) return;
   patch('permissions', {
     ...props.modelValue.permissions,
     [key]: !props.modelValue.permissions[key],
@@ -148,7 +149,7 @@ function submit() {
             :aria-describedby="describedBy"
             :aria-invalid="invalid || undefined"
             :disabled="props.disabled"
-            autocomplete="new-password"
+            :autocomplete="props.mode === 'protect' ? 'new-password' : 'current-password'"
             placeholder="Enter a password"
             class="pr-10"
             @update:model-value="patch('password', String($event))"
@@ -157,7 +158,8 @@ function submit() {
           />
           <button
             type="button"
-            class="absolute top-1/2 right-2 inline-flex size-6 -translate-y-1/2 items-center justify-center rounded text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none"
+            :disabled="props.disabled"
+            class="absolute top-1/2 right-2 inline-flex size-6 -translate-y-1/2 items-center justify-center rounded text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40"
             :aria-label="visible ? 'Hide password' : 'Show password'"
             @click="visible = !visible"
           >
@@ -222,12 +224,19 @@ function submit() {
           <p class="text-sm font-medium text-foreground">Set a separate owner password</p>
           <p class="text-xs text-muted-foreground">Controls permissions when the document is opened with the user password.</p>
         </div>
-        <Switch v-model="showOwner" aria-label="Set a separate owner password" />
+        <Switch v-model="showOwner" :disabled="props.disabled" aria-label="Set a separate owner password" />
       </div>
 
-      <Field v-if="showOwner" label="Owner password" description="Optional. Leave empty to use the same password.">
+      <Field
+        v-if="showOwner"
+        v-slot="{ id, describedBy }"
+        label="Owner password"
+        description="Optional. Leave empty to use the same password."
+      >
         <Input
+          :id="id"
           :model-value="props.modelValue.ownerPassword"
+          :aria-describedby="describedBy"
           type="password"
           autocomplete="new-password"
           placeholder="Owner password"
@@ -245,7 +254,8 @@ function submit() {
           <div
             v-for="permission in permissionLabels"
             :key="permission.key"
-            class="flex cursor-pointer items-start gap-2.5 rounded-lg border border-border p-3 transition-colors hover:bg-accent/40"
+            class="flex items-start gap-2.5 rounded-lg border border-border p-3 transition-colors"
+            :class="props.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:bg-accent/40'"
             @click="patchPermission(permission.key)"
           >
             <span class="mt-0.5" @click.stop>

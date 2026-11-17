@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import {
   PopoverArrow,
   PopoverContent,
@@ -7,6 +8,7 @@ import {
   PopoverTrigger,
 } from 'reka-ui';
 import { cn } from '../../lib/cn';
+import { useSpdfUi } from './context';
 
 interface Props {
   side?: 'top' | 'right' | 'bottom' | 'left';
@@ -23,6 +25,17 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const open = defineModel<boolean>('open');
+const ui = useSpdfUi();
+
+const contentClasses = computed(() =>
+  cn(
+    'spdf spdf-popover z-[70] min-w-56 outline-none',
+    'rounded-xl border border-border bg-popover p-4 text-popover-foreground shadow-xl',
+    ui.classes?.popover,
+    props.class,
+    props.contentClass,
+  ),
+);
 </script>
 
 <template>
@@ -35,12 +48,7 @@ const open = defineModel<boolean>('open');
         :side="props.side"
         :align="props.align"
         :side-offset="props.sideOffset"
-        :class="
-          cn(
-            'spdf spdf-popover z-[70] min-w-56 rounded-xl border border-border bg-popover p-4 text-popover-foreground shadow-xl outline-none',
-            props.class,
-          )
-        "
+        :class="contentClasses"
       >
         <slot />
         <PopoverArrow class="fill-popover" :width="12" :height="6" />

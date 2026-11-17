@@ -5,9 +5,10 @@ import {
   Check,
   CheckCircle2,
   Circle,
+  FileText,
   Loader2,
   X,
-} from 'lucide-vue-next';
+} from '@lucide/vue';
 import { cn } from '../../lib/cn';
 import { clampPercent } from '../../lib/format';
 import type { PdfProcessingStatus, PdfProcessingStep } from '../../lib/types';
@@ -102,8 +103,11 @@ const resolvedDescription = computed(() => {
           <div v-else-if="props.status === 'success'" class="grid size-12 place-items-center rounded-full bg-success/12 text-success">
             <Check class="size-6" aria-hidden="true" />
           </div>
-          <div v-else class="grid size-12 place-items-center rounded-full bg-destructive/12 text-destructive">
+          <div v-else-if="props.status === 'error'" class="grid size-12 place-items-center rounded-full bg-destructive/12 text-destructive">
             <AlertCircle class="size-6" aria-hidden="true" />
+          </div>
+          <div v-else class="grid size-12 place-items-center rounded-full bg-muted text-muted-foreground">
+            <FileText class="size-6" aria-hidden="true" />
           </div>
         </div>
 
@@ -125,8 +129,11 @@ const resolvedDescription = computed(() => {
               <path class="spdf-check-path" d="M5 12.5l4.5 4.5L19 7" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
           </div>
-          <div v-else class="grid size-16 place-items-center rounded-full bg-destructive/12 text-destructive">
+          <div v-else-if="props.status === 'error'" class="grid size-16 place-items-center rounded-full bg-destructive/12 text-destructive">
             <AlertCircle class="size-8" aria-hidden="true" />
+          </div>
+          <div v-else class="grid size-16 place-items-center rounded-full bg-muted text-muted-foreground">
+            <FileText class="size-8" aria-hidden="true" />
           </div>
         </div>
 

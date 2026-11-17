@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { Search, X } from 'lucide-vue-next';
+import { computed, ref, watch } from 'vue';
+import { Search, X } from '@lucide/vue';
 import { cn } from '../../lib/cn';
 import type { PdfTool } from '../../lib/types';
 import EmptyState from '../ui/EmptyState.vue';
@@ -41,6 +41,12 @@ const activeCategory = ref('all');
 const categories = computed(() => {
   if (props.categories?.length) return props.categories;
   return [...new Set(props.tools.map((tool) => tool.category).filter((value): value is string => !!value))].sort();
+});
+
+watch(categories, (list) => {
+  if (activeCategory.value !== 'all' && !list.includes(activeCategory.value)) {
+    activeCategory.value = 'all';
+  }
 });
 
 const filtered = computed(() => {
@@ -99,6 +105,7 @@ const gridStyle = computed(() => ({
       <div v-if="categories.length" class="flex flex-wrap items-center gap-1.5">
         <button
           type="button"
+          :aria-pressed="activeCategory === 'all'"
           :class="
             cn(
               'inline-flex h-7 items-center rounded-full border px-2.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none',
@@ -115,6 +122,7 @@ const gridStyle = computed(() => ({
           v-for="category in categories"
           :key="category"
           type="button"
+          :aria-pressed="activeCategory === category"
           :class="
             cn(
               'inline-flex h-7 items-center rounded-full border px-2.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none',
@@ -127,7 +135,7 @@ const gridStyle = computed(() => ({
         >
           {{ category }}
         </button>
-        <span v-if="props.showCount" class="ml-auto text-[11px] text-muted-foreground">
+        <span v-if="props.showCount" class="ml-auto text-[11px] text-muted-foreground" aria-live="polite">
           {{ filtered.length }} {{ filtered.length === 1 ? 'tool' : 'tools' }}
         </span>
       </div>

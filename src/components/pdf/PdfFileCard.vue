@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { AlertCircle, CheckCircle2, FileText, Loader2, RotateCcw, X } from 'lucide-vue-next';
+import { AlertCircle, CheckCircle2, FileText, Loader2, RotateCcw, X } from '@lucide/vue';
 import { cn } from '../../lib/cn';
 import { formatBytes, pageCountLabel, truncateMiddle } from '../../lib/format';
 import type { PdfFileDescriptor } from '../../lib/types';
@@ -168,8 +168,9 @@ const progress = computed(() => props.file.progress);
       <button
         v-if="status === 'error'"
         type="button"
-        class="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none"
-        aria-label="Retry"
+        :disabled="props.disabled"
+        class="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40"
+        :aria-label="`Retry ${props.file.name}`"
         @click="emit('retry', props.file)"
       >
         <RotateCcw class="size-3.5" aria-hidden="true" />

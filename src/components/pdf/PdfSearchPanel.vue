@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref } from 'vue';
-import { FileSearch, Search, X } from 'lucide-vue-next';
+import { FileSearch, Search, X } from '@lucide/vue';
 import { cn } from '../../lib/cn';
 import type { PdfSearchResults } from '../../lib/pdf';
 import Button from '../ui/Button.vue';
@@ -85,7 +85,6 @@ function parts(snippet: string) {
           :model-value="props.modelValue"
           placeholder="Search this document…"
           class="h-8 pr-8 pl-8 text-xs"
-          autofocus
           aria-label="Search query"
           @update:model-value="emit('update:modelValue', String($event))"
         />
@@ -106,13 +105,18 @@ function parts(snippet: string) {
       </Tooltip>
     </div>
 
-    <div class="flex items-center justify-between gap-2 px-3 py-2 text-[11px] text-muted-foreground">
+    <div class="flex items-center justify-between gap-2 px-3 py-2 text-[11px] text-muted-foreground" aria-live="polite">
       <span class="inline-flex items-center gap-1.5">
         <Spinner v-if="props.searching" :size="12" label="Searching" />
         <template v-if="props.searching">Searching…</template>
         <template v-else-if="props.results && props.modelValue.trim().length >= 2">
-          {{ props.results.total }} {{ props.results.total === 1 ? 'match' : 'matches' }}
-          <template v-if="props.results.truncated"> (showing first {{ props.results.matches.length }})</template>
+          <template v-if="props.results.truncated">
+            Showing first {{ props.results.matches.length }}
+            {{ props.results.matches.length === 1 ? 'match' : 'matches' }}
+          </template>
+          <template v-else>
+            {{ props.results.total }} {{ props.results.total === 1 ? 'match' : 'matches' }}
+          </template>
         </template>
         <template v-else-if="props.modelValue.trim().length === 1">Type at least 2 characters</template>
         <template v-else>Search text across every page</template>
@@ -120,7 +124,7 @@ function parts(snippet: string) {
     </div>
 
     <div class="spdf-scroll min-h-0 flex-1 overflow-y-auto border-t border-border">
-      <div v-if="groups.length" class="divide-y divide-border">
+      <div v-if="groups.length && props.modelValue.trim().length >= 2" class="divide-y divide-border">
         <section v-for="group in groups" :key="group.page">
           <div class="sticky top-0 z-10 flex items-center justify-between bg-popover/95 px-3 py-1.5 backdrop-blur">
             <button

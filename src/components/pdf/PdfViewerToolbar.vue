@@ -14,7 +14,7 @@ import {
   RotateCw,
   Search,
   Shrink,
-} from 'lucide-vue-next';
+} from '@lucide/vue';
 import { cn } from '../../lib/cn';
 import Button from '../ui/Button.vue';
 import Input from '../ui/Input.vue';
@@ -102,6 +102,8 @@ function step(delta: number) {
         props.class,
       )
     "
+    role="toolbar"
+    aria-label="Document toolbar"
   >
     <div class="order-1 flex items-center gap-0.5">
       <Tooltip v-if="props.showSidebarToggle" :content="props.sidebarOpen ? 'Hide thumbnails' : 'Show thumbnails'">
@@ -154,7 +156,8 @@ function step(delta: number) {
       <Tooltip content="Reset to 100%">
         <button
           type="button"
-          class="spdf-tabular inline-flex h-7 min-w-12 items-center justify-center rounded-md px-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none"
+          :disabled="props.disabled"
+          class="spdf-tabular inline-flex h-7 min-w-12 items-center justify-center rounded-md px-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
           aria-label="Reset zoom"
           @click="emit('resetZoom')"
         >
@@ -179,8 +182,15 @@ function step(delta: number) {
           <Maximize />
         </Button>
       </Tooltip>
-      <Tooltip content="Rotate">
-        <Button variant="ghost" size="icon-sm" :disabled="props.disabled" aria-label="Rotate pages" @click="emit('rotate')">
+      <Tooltip :content="props.rotation ? `Rotate (${props.rotation}°)` : 'Rotate'">
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          :class="props.rotation ? 'bg-accent text-accent-foreground' : ''"
+          :disabled="props.disabled"
+          :aria-label="props.rotation ? `Rotate pages (${props.rotation}° applied)` : 'Rotate pages'"
+          @click="emit('rotate')"
+        >
           <RotateCw />
         </Button>
       </Tooltip>

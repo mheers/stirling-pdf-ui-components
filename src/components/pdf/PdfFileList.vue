@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { GripVertical } from 'lucide-vue-next';
+import { GripVertical } from '@lucide/vue';
 import { cn } from '../../lib/cn';
 import { inDocumentOrder, updateSelection } from '../../lib/selection';
 import type { PdfFileDescriptor } from '../../lib/types';
@@ -78,6 +78,7 @@ function clearSelection() {
 }
 
 function reorderByOffset(id: string, offset: number) {
+  if (props.disabled) return;
   const current = files.value;
   const from = current.findIndex((file) => file.id === id);
   const to = from + offset;
@@ -135,7 +136,7 @@ function onDragEnd() {
 }
 
 function onGripKeydown(file: PdfFileDescriptor, event: KeyboardEvent) {
-  if (!event.altKey) return;
+  if (props.disabled || !event.altKey) return;
   if (event.key === 'ArrowUp') {
     event.preventDefault();
     reorderByOffset(file.id, -1);
@@ -148,11 +149,12 @@ function onGripKeydown(file: PdfFileDescriptor, event: KeyboardEvent) {
 
 <template>
   <div :class="cn('spdf', props.class)">
-    <div v-if="props.selectable && selectedIds.length" class="mb-2 flex items-center justify-between px-0.5 text-xs">
+    <div v-if="props.selectable && selectedIds.length" class="mb-2 flex items-center justify-between px-0.5 text-xs" aria-live="polite">
       <span class="font-medium text-foreground">{{ selectedIds.length }} selected</span>
       <button
         type="button"
-        class="text-muted-foreground underline-offset-2 hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none"
+        :disabled="props.disabled"
+        class="text-muted-foreground underline-offset-2 hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
         @click="clearSelection"
       >
         Clear selection
@@ -192,8 +194,9 @@ function onGripKeydown(file: PdfFileDescriptor, event: KeyboardEvent) {
         <button
           v-if="props.reorderable"
           type="button"
-          draggable="true"
-          class="mt-1 inline-flex h-10 w-6 shrink-0 cursor-grab items-center justify-center rounded-md text-muted-foreground/60 transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none active:cursor-grabbing"
+          :draggable="!props.disabled"
+          :disabled="props.disabled"
+          class="mt-1 inline-flex h-10 w-6 shrink-0 cursor-grab items-center justify-center rounded-md text-muted-foreground/60 transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-40"
           :aria-label="`Reorder ${file.name}. Use Alt plus arrow up or down to move.`"
           @dragstart="onDragStart(file, $event)"
           @dragend="onDragEnd"

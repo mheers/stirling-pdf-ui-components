@@ -17,12 +17,13 @@ import {
   Undo2,
   Redo2,
   X,
-} from 'lucide-vue-next';
+} from '@lucide/vue';
 import { usePdfDocument } from '../../composables/usePdfDocument';
 import { cn } from '../../lib/cn';
-import { normalizeRotation, pageRotation } from '../../lib/pdf';
+import { isPdfPasswordError, normalizeRotation, pageRotation } from '../../lib/pdf';
 import { updateSelection } from '../../lib/selection';
 import type { PageOrganizerItem, PdfSource } from '../../lib/types';
+import Alert from '../ui/Alert.vue';
 import Button from '../ui/Button.vue';
 import EmptyState from '../ui/EmptyState.vue';
 import Popover from '../ui/Popover.vue';
@@ -70,10 +71,18 @@ const blankAspect = ref(0.707);
 const hasInitialized = ref(false);
 const hasUserModified = ref(false);
 
-const { doc, numPages, loading } = usePdfDocument(() => props.source ?? null, {
+watch(
+  () => props.thumbnailWidth,
+  (value) => {
+    thumbnailSize.value = value;
+  },
+);
+
+const { doc, numPages, loading, error } = usePdfDocument(() => props.source ?? null, {
   password: () => props.password,
 });
 const resolvedPageCount = computed(() => props.pageCount ?? numPages.value ?? 0);
+const passwordError = computed(() => isPdfPasswordError(error.value));
 
 let idCounter = 0;
 function nextId(): string {
@@ -209,19 +218,19 @@ function mutate(fn: () => PageOrganizerItem[], event?: () => void) {
 }
 
 function undo() {
+  if (props.disabled) return;
   const previous = past.value.pop();
   if (!previous) return;
   future.value.push(snapshot());
   restore(previous);
-  emit('change', items.value);
 }
 
 function redo() {
+  if (props.disabled) return;
   const next = future.value.pop();
   if (!next) return;
   past.value.push(snapshot());
   restore(next);
-  emit('change', items.value);
 }
 
 // ----- Selection -----------------------------------------------------------
@@ -431,6 +440,7 @@ function onDragEnd() {
 const root = ref<HTMLElement | null>(null);
 
 function onWindowKeydown(event: KeyboardEvent) {
+  if (props.disabled) return;
   const active = document.activeElement as HTMLElement | null;
   if (!root.value || !active || !root.value.contains(active)) return;
   if (['INPUT', 'TEXTAREA', 'SELECT'].includes(active.tagName)) return;
@@ -465,6 +475,11 @@ function onWindowKeydown(event: KeyboardEvent) {
 onMounted(() => window.addEventListener('keydown', onWindowKeydown));
 onBeforeUnmount(() => window.removeEventListener('keydown', onWindowKeydown));
 
+function blankAspectFor(item: PageOrganizerItem): number {
+  const rotation = normalizeRotation(item.rotation);
+  return rotation === 90 || rotation === 270 ? 1 / blankAspect.value : blankAspect.value;
+}
+
 const summary = computed(() => {
   const parts = [`${items.value.length} ${items.value.length === 1 ? 'page' : 'pages'}`];
   if (rotationCount.value) parts.push(`${rotationCount.value} rotated`);
@@ -472,13 +487,6 @@ const summary = computed(() => {
   if (duplicateCount.value) parts.push(`${duplicateCount.value} duplicated`);
   return parts.join(' · ');
 });
-
-function onBlankKeydown(item: PageOrganizerItem, event: KeyboardEvent) {
-  if (event.key === 'Enter' || event.key === ' ') {
-    event.preventDefault();
-    selectItem(item, event as unknown as MouseEvent);
-  }
-}
 </script>
 
 <template>
@@ -486,6 +494,8 @@ function onBlankKeydown(item: PageOrganizerItem, event: KeyboardEvent) {
     <div
       v-if="props.showToolbar"
       class="sticky top-0 z-20 flex flex-wrap items-center gap-1.5 rounded-xl border border-border bg-background/95 p-1.5 shadow-xs backdrop-blur"
+      role="toolbar"
+      aria-label="Page tools"
     >
       <div class="flex min-w-0 items-center gap-1.5 px-1">
         <span class="spdf-tabular rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground" aria-live="polite">
@@ -568,12 +578,12 @@ function onBlankKeydown(item: PageOrganizerItem, event: KeyboardEvent) {
 
       <div class="flex items-center gap-0.5">
         <Tooltip content="Undo (Ctrl/Cmd+Z)">
-          <Button variant="ghost" size="icon-sm" :disabled="!canUndo" aria-label="Undo" @click="undo">
+          <Button variant="ghost" size="icon-sm" :disabled="props.disabled || !canUndo" aria-label="Undo" @click="undo">
             <Undo2 />
           </Button>
         </Tooltip>
         <Tooltip content="Redo (Shift+Ctrl/Cmd+Z)">
-          <Button variant="ghost" size="icon-sm" :disabled="!canRedo" aria-label="Redo" @click="redo">
+          <Button variant="ghost" size="icon-sm" :disabled="props.disabled || !canRedo" aria-label="Redo" @click="redo">
             <Redo2 />
           </Button>
         </Tooltip>
@@ -587,17 +597,35 @@ function onBlankKeydown(item: PageOrganizerItem, event: KeyboardEvent) {
       <div class="ml-auto flex items-center gap-1">
         <Popover side="bottom" align="end">
           <template #trigger>
-            <Button variant="ghost" size="icon-sm" aria-label="Thumbnail size">
+            <Button variant="ghost" size="icon-sm" :disabled="props.disabled" aria-label="Thumbnail size">
               <GalleryHorizontal />
             </Button>
           </template>
           <div class="grid w-48 gap-3">
-            <p class="text-xs font-medium text-foreground">Thumbnail size</p>
-            <Slider v-model="thumbnailSize" :min="110" :max="240" :step="10" show-value suffix="px" />
+            <Slider
+              v-model="thumbnailSize"
+              :min="110"
+              :max="240"
+              :step="10"
+              label="Thumbnail size"
+              show-value
+              suffix="px"
+              :disabled="props.disabled"
+            />
           </div>
         </Popover>
       </div>
     </div>
+
+    <Alert
+      v-if="passwordError"
+      variant="warning"
+      title="This PDF is password protected"
+      class="mb-3"
+    >
+      Pass the open password with the <code class="font-mono text-[11px]">password</code> prop to
+      preview and organize its pages.
+    </Alert>
 
     <div class="rounded-xl border border-border bg-muted/20 p-3 sm:p-4">
       <div v-if="loading && !items.length" class="grid gap-4" :style="gridStyle">
@@ -637,8 +665,9 @@ function onBlankKeydown(item: PageOrganizerItem, event: KeyboardEvent) {
 
           <button
             type="button"
-            draggable="true"
-            class="absolute top-1 left-1 z-10 inline-flex size-6 cursor-grab items-center justify-center rounded-md border border-border bg-background/95 text-muted-foreground opacity-0 shadow-xs transition-opacity group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none active:cursor-grabbing"
+            :draggable="!props.disabled"
+            :disabled="props.disabled"
+            class="absolute top-1 left-1 z-10 inline-flex size-6 cursor-grab items-center justify-center rounded-md border border-border bg-background/95 text-muted-foreground opacity-0 shadow-xs transition-opacity group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-30"
             :aria-label="`Reorder page ${index + 1}. Use Alt plus arrow keys to move.`"
             @dragstart="onDragStart(item, $event)"
             @dragend="onDragEnd"
@@ -649,11 +678,12 @@ function onBlankKeydown(item: PageOrganizerItem, event: KeyboardEvent) {
           <div v-if="item.blank" class="w-full">
             <button
               type="button"
+              :disabled="props.disabled"
               :aria-pressed="selectedSet.has(item.id)"
               :aria-label="`Blank page ${index + 1}`"
-              class="spdf-paper relative block w-full overflow-hidden rounded-sm border border-dashed border-pdf-page-border transition-[box-shadow,transform,border-color] duration-200 hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              class="spdf-paper relative block w-full overflow-hidden rounded-sm border border-dashed border-pdf-page-border transition-[box-shadow,transform,border-color] duration-200 hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60"
               :class="selectedSet.has(item.id) ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : ''"
-              :style="{ aspectRatio: `${blankAspect}` }"
+              :style="{ aspectRatio: `${blankAspectFor(item)}` }"
               @click="selectItem(item, $event)"
             >
               <span class="grid size-full place-items-center bg-pdf-page">
@@ -699,7 +729,8 @@ function onBlankKeydown(item: PageOrganizerItem, event: KeyboardEvent) {
 
           <button
             type="button"
-            class="absolute top-1 left-8 z-10 inline-flex size-6 items-center justify-center rounded-md border border-border bg-background/95 text-muted-foreground opacity-0 shadow-xs transition-opacity group-hover:opacity-100 hover:text-destructive focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none"
+            :disabled="props.disabled"
+            class="absolute top-1 left-8 z-10 inline-flex size-6 items-center justify-center rounded-md border border-border bg-background/95 text-muted-foreground opacity-0 shadow-xs transition-opacity group-hover:opacity-100 hover:text-destructive focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-30"
             :aria-label="`Delete page ${index + 1}`"
             @click.stop="deleteItem(item)"
           >

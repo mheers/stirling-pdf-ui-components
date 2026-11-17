@@ -32,6 +32,7 @@ const meta = {
     onDownload: fn(),
     onPrint: fn(),
     onPasswordRequired: fn(),
+    onUnlocked: fn(),
   },
   render: (args) => ({
     components: { PdfViewer },
@@ -55,6 +56,22 @@ export const PasswordProtected: Story = {
       description: {
         story:
           'The sample is encrypted with the open password **stirling**. The viewer opens the unlock dialog automatically and retries once the password is correct.',
+      },
+    },
+  },
+};
+
+export const UnlockedProgrammatically: Story = {
+  args: {
+    source: '/samples/protected.pdf',
+    filename: 'protected.pdf',
+    password: 'stirling',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Pass `password` when your app already collected the open password. The `unlocked` event echoes the password that succeeded.',
       },
     },
   },

@@ -12,7 +12,7 @@ import { Meta } from '@storybook/addon-docs/blocks';
     </h1>
     <p style={{fontSize: '1.05rem', lineHeight: 1.7, color: '#5d636d', margin: 0}}>
       Beautiful, accessible Vue components for building PDF tools: upload, preview, search,
-      organize, annotate, protect, compress, OCR, sign, and deliver documents.
+      organize, protect, compress, OCR, sign, and deliver documents.
     </p>
   </div>
   <img
@@ -36,11 +36,13 @@ for Vue 3 and the shadcn-vue ecosystem.
 ## Install
 
 ```bash
-pnpm add @mheers/stirling-pdf-ui-components
-pnpm add pdfjs-dist
+pnpm add @mheers/stirling-pdf-ui-components pdfjs-dist
 ```
 
-`pdfjs-dist` is an optional peer dependency: only the viewer and thumbnail components need it.
+`pdfjs-dist` is a required peer dependency, but it is loaded lazily: only the viewer, thumbnail,
+search, and document-info components use the PDF engine. Pure UI and form components never do.
+`reka-ui`, `@lucide/vue`, `clsx`, `tailwind-merge`, and `class-variance-authority` are peers too,
+so a shadcn-vue app keeps a single copy of each instead of bundling duplicates.
 
 ## Quick start
 
@@ -115,6 +117,19 @@ your brand; every component follows automatically.
 The stylesheet ships without Tailwind preflight and scopes its reset to `.spdf`, so importing
 `style.css` will not restyle the host application. PDF pages always render on white, even in dark
 mode, because document ink must stay legible.
+
+## Host primitives
+
+If your app already owns the primitives, pass them once with `SpdfUiPlugin`. Buttons, inputs,
+checkboxes, switches, sliders, badges, skeletons, and spinners can be replaced with your components;
+class recipes let native controls and overlay skins use your app's exact recipes.
+
+```ts
+app.use(SpdfUiPlugin, {
+  components: { Button: MyButton },
+  classes: { input: 'h-9 w-full rounded-md border px-3 …' },
+});
+```
 
 ## What’s included
 

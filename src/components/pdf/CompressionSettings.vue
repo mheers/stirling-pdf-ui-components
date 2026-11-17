@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { Archive, Feather, Scale } from 'lucide-vue-next';
+import { Archive, Feather, Scale } from '@lucide/vue';
 import { cn } from '../../lib/cn';
 import { formatBytes, savedPercent } from '../../lib/format';
 import type { CompressionLevel, CompressionOptions } from '../../lib/types';
@@ -157,7 +157,8 @@ const dpiOptions = [72, 96, 150, 200, 300].map((dpi) => ({ value: String(dpi), l
 
     <div class="grid gap-5 sm:grid-cols-2">
       <Slider
-        :model-value="options.quality"        :min="10"
+        :model-value="options.quality"
+        :min="10"
         :max="100"
         :step="5"
         label="Image quality"
@@ -166,8 +167,10 @@ const dpiOptions = [72, 96, 150, 200, 300].map((dpi) => ({ value: String(dpi), l
         :disabled="props.disabled"
         @update:model-value="patchQuality"
       />
-      <Field label="Image resolution">
+      <Field v-slot="{ id, describedBy }" label="Image resolution">
         <Select
+          :id="id"
+          :aria-describedby="describedBy"
           :model-value="String(options.dpi)"
           :options="dpiOptions"
           :disabled="props.disabled"

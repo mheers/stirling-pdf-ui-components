@@ -1,4 +1,6 @@
 @import 'tailwindcss';
+/* Load the library last so its responsive utilities are not shadowed by the
+   host's base utilities. Token fallbacks still lose to the host theme. */
 @import '@mheers/stirling-pdf-ui-components/style.css';
 
 :root {

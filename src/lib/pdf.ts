@@ -544,6 +544,13 @@ export async function searchPdfDocument(
 
     if (pageMatches > 0) byPage.push({ page: pageNumber, count: pageMatches });
     if (truncated) break;
+
+    // The per-page cap clipped this page; there may be more matches that the
+    // result set does not report.
+    if (pageMatches === perPageLimit && lower.indexOf(needle, from) !== -1) {
+      truncated = true;
+      break;
+    }
   }
 
   return { query, total, matches, byPage, truncated };

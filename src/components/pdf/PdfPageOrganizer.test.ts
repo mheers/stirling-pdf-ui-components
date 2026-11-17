@@ -99,4 +99,16 @@ describe('PdfPageOrganizer', () => {
     const latest = wrapper.emitted('update:modelValue')?.at(-1)?.[0] as PageOrganizerItem[];
     expect(latest.map((page) => page.page)).toEqual([2, 1, 3]);
   });
+
+  it('rotates the blank page aspect ratio with the page', async () => {
+    const wrapper = mount(PdfPageOrganizer, { props: { pageCount: 1 } });
+    await nextTick();
+
+    await buttonByLabel(wrapper, 'Page 1')?.trigger('click');
+    await buttonByLabel(wrapper, 'Add a blank page')?.trigger('click');
+    await buttonByLabel(wrapper, 'Rotate selected pages right')?.trigger('click');
+
+    const blank = wrapper.find('button[aria-label^="Blank page"]');
+    expect(blank.attributes('style')).toContain('aspect-ratio: 1.414');
+  });
 });

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, shallowRef, watch } from 'vue';
-import { FileText, ShieldCheck } from 'lucide-vue-next';
+import { FileText, ShieldCheck } from '@lucide/vue';
 import { usePdfDocument } from '../../composables/usePdfDocument';
-import { getPdfDocumentStats } from '../../lib/pdf';
+import { getPdfDocumentStats, isPdfPasswordError } from '../../lib/pdf';
 import { cn } from '../../lib/cn';
 import { formatBytes, pageCountLabel } from '../../lib/format';
 import type { PdfDocumentStats, PdfSource } from '../../lib/types';
@@ -23,6 +23,7 @@ const emit = defineEmits<{ loaded: [stats: PdfDocumentStats] }>();
 
 const stats = shallowRef<PdfDocumentStats | null>(null);
 const statsLoading = shallowRef(false);
+let statsToken = 0;
 const { doc, loading, error, numPages } = usePdfDocument(() => props.source, {
   password: () => props.password,
 });
@@ -47,6 +48,13 @@ const metadataRows = computed(() => {
   ].filter((row) => !!row.value);
 });
 
+const errorMessage = computed(() => {
+  if (isPdfPasswordError(error.value)) {
+    return 'This PDF is password protected. Pass the open password to read its information.';
+  }
+  return error.value instanceof Error ? error.value.message : 'The file could not be opened.';
+});
+
 const infoRows = computed(() => {
   const value = stats.value;
   if (!value) return [];
@@ -61,17 +69,20 @@ const infoRows = computed(() => {
 watch(
   doc,
   async (document) => {
+    const token = ++statsToken;
     if (!document) {
       stats.value = null;
+      statsLoading.value = false;
       return;
     }
     statsLoading.value = true;
     try {
       const value = await getPdfDocumentStats(document, props.source ?? undefined);
+      if (token !== statsToken) return;
       stats.value = value;
       emit('loaded', value);
     } finally {
-      statsLoading.value = false;
+      if (token === statsToken) statsLoading.value = false;
     }
   },
   { immediate: true },
@@ -102,7 +113,7 @@ watch(
     </div>
 
     <Alert v-else-if="error" variant="destructive" title="Could not read document information" class="mt-5">
-      {{ error instanceof Error ? error.message : 'The file could not be opened.' }}
+      {{ errorMessage }}
     </Alert>
 
     <template v-else>

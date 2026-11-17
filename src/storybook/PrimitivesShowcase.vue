@@ -10,13 +10,14 @@ import {
   Settings2,
   Sparkles,
   Trash2,
-} from 'lucide-vue-next';
+} from '@lucide/vue';
 import Alert from '../components/ui/Alert.vue';
 import Badge from '../components/ui/Badge.vue';
 import Button from '../components/ui/Button.vue';
 import Card from '../components/ui/Card.vue';
 import CardContent from '../components/ui/CardContent.vue';
 import CardDescription from '../components/ui/CardDescription.vue';
+import CardFooter from '../components/ui/CardFooter.vue';
 import CardHeader from '../components/ui/CardHeader.vue';
 import CardTitle from '../components/ui/CardTitle.vue';
 import Checkbox from '../components/ui/Checkbox.vue';
@@ -29,11 +30,14 @@ import Label from '../components/ui/Label.vue';
 import Popover from '../components/ui/Popover.vue';
 import Progress from '../components/ui/Progress.vue';
 import RadioGroup from '../components/ui/RadioGroup.vue';
+import ScrollArea from '../components/ui/ScrollArea.vue';
 import SegmentedControl from '../components/ui/SegmentedControl.vue';
 import Select from '../components/ui/Select.vue';
+import Separator from '../components/ui/Separator.vue';
 import Sheet from '../components/ui/Sheet.vue';
 import Skeleton from '../components/ui/Skeleton.vue';
 import Slider from '../components/ui/Slider.vue';
+import Spinner from '../components/ui/Spinner.vue';
 import Switch from '../components/ui/Switch.vue';
 import Tabs from '../components/ui/Tabs.vue';
 import Textarea from '../components/ui/Textarea.vue';
@@ -121,17 +125,17 @@ const radioItems = [
         <Field label="Document title" description="Shown in readers and search results." v-slot="{ id, describedBy }">
           <Input :id="id" v-model="name" :aria-describedby="describedBy" />
         </Field>
-        <Field label="Notes" optional>
-          <Textarea v-model="notes" :rows="3" />
+        <Field v-slot="{ id }" label="Notes" optional>
+          <Textarea :id="id" v-model="notes" :rows="3" />
         </Field>
-        <Field label="Page size">
-          <Select v-model="selected" :options="options" placeholder="Choose a page size" />
+        <Field v-slot="{ id }" label="Page size">
+          <Select :id="id" v-model="selected" :options="options" placeholder="Choose a page size" />
         </Field>
         <Field label="Image quality" v-slot="{ id, describedBy }">
           <Slider :id="id" v-model="quality" :aria-describedby="describedBy" show-value suffix="%" />
         </Field>
-        <Field label="With an error" error="A document with this name already exists.">
-          <Input model-value="report-final.pdf" aria-invalid="true" />
+        <Field v-slot="{ id }" label="With an error" error="A document with this name already exists.">
+          <Input :id="id" model-value="report-final.pdf" aria-invalid="true" />
         </Field>
       </div>
 
@@ -151,7 +155,7 @@ const radioItems = [
         <RadioGroup v-model="choice" :items="radioItems" variant="cards" aria-label="Compression preset" />
         <div class="grid gap-2">
           <Label>Toolbar mode</Label>
-          <SegmentedControl v-model="segment" :items="segments" full-width />
+          <SegmentedControl v-model="segment" :items="segments" full-width aria-label="Toolbar mode" />
         </div>
         <div class="grid gap-2">
           <Label>Progress</Label>
@@ -161,6 +165,16 @@ const radioItems = [
         <div class="flex items-center gap-2 text-xs text-muted-foreground">
           Press <Kbd>⌘</Kbd> <Kbd>K</Kbd> to search, or <Kbd>/</Kbd> to focus.
         </div>
+        <Separator />
+        <div class="flex items-center gap-2 text-xs text-muted-foreground">
+          <Spinner :size="14" />
+          Rendering page 3…
+        </div>
+        <ScrollArea max-height="96px" class="rounded-lg border border-border p-3 text-xs leading-relaxed text-muted-foreground">
+          <p>ScrollArea is a lightweight, styled scroll container.</p>
+          <p class="mt-2">It keeps long notes, page lists, and previews inside a bounded region.</p>
+          <p class="mt-2">Scrollbars use the same quiet treatment as the PDF viewer.</p>
+        </ScrollArea>
       </div>
     </section>
 
@@ -196,6 +210,10 @@ const radioItems = [
             <Button size="sm"><CheckCircle2 class="size-3.5" /> Download</Button>
             <Button size="sm" variant="outline"><RefreshCw class="size-3.5" /> Start over</Button>
           </CardContent>
+          <CardFooter class="justify-between border-t border-border pt-4 text-xs text-muted-foreground">
+            <span>Balanced preset</span>
+            <span>12 pages</span>
+          </CardFooter>
         </Card>
 
         <div class="flex flex-wrap items-center gap-2">
@@ -208,7 +226,7 @@ const radioItems = [
             </template>
             <div class="grid gap-2">
               <p class="text-sm font-medium">Quick settings</p>
-              <Slider v-model="quality" show-value suffix="%" />
+              <Slider v-model="quality" label="Quick image quality" show-value suffix="%" />
             </div>
           </Popover>
           <Button variant="outline" size="sm" @click="dialogOpen = true">Dialog</Button>
@@ -240,9 +258,7 @@ const radioItems = [
 
     <Sheet v-model:open="sheetOpen" title="Document settings" description="Adjust the output without leaving the page.">
       <div class="grid gap-4">
-        <Field label="Image quality">
-          <Slider v-model="quality" show-value suffix="%" />
-        </Field>
+        <Slider v-model="quality" label="Image quality" show-value suffix="%" />
         <div class="flex items-center justify-between gap-3 rounded-lg border border-border p-3">
           <div>
             <p class="text-sm font-medium">Embed fonts</p>

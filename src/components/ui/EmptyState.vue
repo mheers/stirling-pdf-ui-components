@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FileText } from 'lucide-vue-next';
+import { FileText } from '@lucide/vue';
 import type { Component } from 'vue';
 import { cn } from '../../lib/cn';
 
