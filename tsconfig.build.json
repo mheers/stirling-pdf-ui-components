@@ -1,0 +1,19 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "declarationMap": false,
+    "emitDeclarationOnly": true,
+    "outDir": "dist",
+    "types": ["vite/client"]
+  },
+  "include": ["src/**/*.ts", "src/**/*.vue", "src/vite-env.d.ts"],
+  "exclude": [
+    "src/**/*.stories.ts",
+    "src/**/*.test.ts",
+    "src/**/*.spec.ts",
+    "src/storybook/**",
+    "src/test/**"
+  ]
+}

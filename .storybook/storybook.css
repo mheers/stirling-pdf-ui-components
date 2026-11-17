@@ -1,0 +1,8 @@
+@layer theme, base, components, utilities;
+
+@import 'tailwindcss/preflight.css' layer(base);
+@import '../src/styles/index.css';
+
+@source '../src/**/*.stories.ts';
+@source '../src/**/*.mdx';
+@source './**/*.ts';

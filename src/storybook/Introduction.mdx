@@ -1,0 +1,145 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Introduction" />
+
+<div style={{display: 'flex', gap: '2rem', alignItems: 'center', flexWrap: 'wrap', marginBottom: '2rem'}}>
+  <div style={{flex: '1 1 320px'}}>
+    <p style={{fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#af3434', marginBottom: '0.75rem'}}>
+      Vue 3 · TypeScript · Tailwind
+    </p>
+    <h1 style={{fontSize: '2.6rem', lineHeight: 1.05, margin: '0 0 1rem'}}>
+      Stirling PDF UI Components
+    </h1>
+    <p style={{fontSize: '1.05rem', lineHeight: 1.7, color: '#5d636d', margin: 0}}>
+      Beautiful, accessible Vue components for building PDF tools: upload, preview, search,
+      organize, annotate, protect, compress, OCR, sign, and deliver documents.
+    </p>
+  </div>
+  <img
+    src="/samples/handbook-cover.png"
+    alt="The PDF Workflow Handbook sample cover"
+    style={{width: 180, borderRadius: 6, boxShadow: '0 20px 45px -20px rgba(20,20,30,.55)'}}
+  />
+</div>
+
+## Why this library exists
+
+Most PDF applications rebuild the same surfaces: a dropzone, a file list, a viewer, a page
+organizer, a password form, a result panel. The details that make them feel trustworthy — lazy
+page rendering, keyboard selection, undo, progress states, accessible labels — are easy to skip
+when each app starts from zero.
+
+This library centralizes those surfaces. It is inspired by the excellent
+[Stirling PDF](https://github.com/Stirling-Tools/Stirling-PDF) frontend, rebuilt from the ground up
+for Vue 3 and the shadcn-vue ecosystem.
+
+## Install
+
+```bash
+pnpm add @mheers/stirling-pdf-ui-components
+pnpm add pdfjs-dist
+```
+
+`pdfjs-dist` is an optional peer dependency: only the viewer and thumbnail components need it.
+
+## Quick start
+
+```ts
+import { createApp } from 'vue';
+import {
+  PdfDropzone,
+  PdfPageOrganizer,
+  configurePdfJs,
+} from '@mheers/stirling-pdf-ui-components';
+import '@mheers/stirling-pdf-ui-components/style.css';
+
+import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+configurePdfJs({ workerSrc: workerUrl });
+
+createApp(App).mount('#app');
+```
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue';
+
+const files = ref<File[]>([]);
+const pages = ref();
+</script>
+
+<template>
+  <PdfDropzone multiple @files="files = $event" />
+  <PdfPageOrganizer
+    v-if="files[0]"
+    v-model="pages"
+    :source="files[0]"
+    :page-count="12"
+  />
+</template>
+```
+
+## The PDF.js worker
+
+PDF rendering happens in a worker. Configure it once, before the first viewer or thumbnail
+mounts. With Vite:
+
+```ts
+import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+import { configurePdfJs } from '@mheers/stirling-pdf-ui-components';
+
+configurePdfJs({ workerSrc: workerUrl });
+```
+
+With another bundler, copy `node_modules/pdfjs-dist/build/pdf.worker.min.mjs` into your public
+folder and pass its URL. For non-embedded fonts and CJK documents you can also set `cMapUrl`,
+`standardFontDataUrl`, and `wasmUrl`.
+
+## Theming
+
+The library uses the standard shadcn-vue token names. Override them in your app CSS to match
+your brand; every component follows automatically.
+
+```css
+:root {
+  --primary: oklch(0.55 0.19 260);
+  --primary-foreground: oklch(0.99 0 0);
+  --radius: 0.75rem;
+}
+
+.dark {
+  --background: oklch(0.17 0.01 265);
+  --card: oklch(0.21 0.01 265);
+}
+```
+
+The stylesheet ships without Tailwind preflight and scopes its reset to `.spdf`, so importing
+`style.css` will not restyle the host application. PDF pages always render on white, even in dark
+mode, because document ink must stay legible.
+
+## What’s included
+
+| Area | Components |
+| --- | --- |
+| **Files** | `PdfDropzone`, `PdfFileCard`, `PdfFileList` |
+| **Browse** | `PdfViewer`, `PdfViewerToolbar`, `PdfThumbnailSidebar`, `PdfPageCanvas`, `PdfSearchPanel`, `PdfDocumentInfo` |
+| **Pages** | `PdfThumbnail`, `PdfPageGrid`, `PdfPageOrganizer`, `PageRangeInput` |
+| **Tools** | `PdfToolCard`, `PdfToolGrid`, `PdfToolHeader` |
+| **Task forms** | `PdfMetadataForm`, `PdfPasswordForm`, `WatermarkSettings`, `PageNumberSettings`, `CompressionSettings`, `OcrSettings`, `SplitSettings` |
+| **Signing** | `SignaturePad`, `SignatureInput` |
+| **Feedback** | `PdfProcessingState`, `PdfResultPanel` |
+| **Foundations** | Buttons, inputs, fields, dialogs, sheets, popovers, tabs, sliders, and more |
+
+Every component is keyboard accessible, supports dark mode, and ships with a Storybook story.
+
+## Design principles
+
+1. **Show the document.** A thumbnail answers more questions than a filename.
+2. **Make the next step obvious.** One primary action per surface; settings stay out of the way.
+3. **Keep destructive actions reversible.** The page organizer has undo, redo, and reset.
+4. **Never hide state.** Loading, processing, errors, and empty states are designed, not implied.
+5. **Respect the host.** Scoped styles, semantic tokens, no global CSS side effects.
+
+## License
+
+MIT © Marcel Heers. The component API and design are original; the Stirling PDF project is
+MIT licensed and was used as UX research and inspiration.

@@ -1,0 +1,56 @@
+name: Bug report
+description: Something is broken or does not behave as documented.
+title: 'bug: '
+labels: ['bug']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. A minimal reproduction is the fastest route to a fix.
+  - type: input
+    id: component
+    attributes:
+      label: Component
+      description: Which export is affected?
+      placeholder: PdfPageOrganizer
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Include the expected result and what you saw instead.
+      placeholder: I selected three pages, rotated them, and...
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Steps, a code sample, or a link to a minimal repo.
+      placeholder: |
+        1. Drop public/samples/handbook.pdf into the organizer
+        2. Select pages 2 and 3
+        3. Press R
+        4. ...
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      value: |
+        - Library version:
+        - Vue version:
+        - pdfjs-dist version:
+        - Browser:
+        - Bundler:
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Console output or screenshots
+      description: Paste errors or attach images. Remove any private document data.
+    validations:
+      required: false

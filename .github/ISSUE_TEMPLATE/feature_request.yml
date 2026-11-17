@@ -1,0 +1,48 @@
+name: Feature request
+description: Propose a new component, prop, or interaction.
+title: 'feat: '
+labels: ['enhancement']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This library focuses on PDF *presentation and interaction*. Processing belongs in a backend
+        or SDK. Please frame the request around the user problem first.
+  - type: textarea
+    id: problem
+    attributes:
+      label: User problem
+      description: What is hard to do today, and who runs into it?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed interaction
+      description: Describe the component or change. Sketches and links to similar tools are welcome.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Existing components or workarounds you tried.
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - New PDF component
+        - Existing component API
+        - UI primitive
+        - Accessibility
+        - Documentation or Storybook
+        - Other
+    validations:
+      required: true
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      options:
+        - label: I’m willing to open a PR for this.

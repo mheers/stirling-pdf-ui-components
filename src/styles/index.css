@@ -1,0 +1,573 @@
+/*
+ * Stirling PDF UI Components — design tokens and library styles.
+ *
+ * The library ships compiled CSS so consumers do not need Tailwind. Tokens use
+ * the standard shadcn-vue names, so an existing shadcn theme can override them
+ * without touching component code.
+ *
+ * Preflight is deliberately NOT shipped. The small reset below is scoped to
+ * `.spdf`, a class present on every component root, so the library cannot leak
+ * global styles into the host application.
+ */
+
+@layer theme, base, components, utilities;
+
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+@custom-variant dark (&:where(.dark, .dark *, [data-theme='dark'], [data-theme='dark'] *));
+
+/* Only scan the library itself. Storybook adds its own sources separately. */
+@source '../components';
+@source '../composables';
+
+:root {
+  --background: oklch(0.984 0.004 95);
+  --foreground: oklch(0.255 0.012 265);
+
+  --card: oklch(1 0 0);
+  --card-foreground: var(--foreground);
+  --popover: oklch(1 0 0);
+  --popover-foreground: var(--foreground);
+
+  --primary: oklch(0.545 0.185 262);
+  --primary-foreground: oklch(0.99 0.002 95);
+
+  --secondary: oklch(0.958 0.006 95);
+  --secondary-foreground: oklch(0.31 0.012 265);
+
+  --muted: oklch(0.962 0.005 95);
+  --muted-foreground: oklch(0.52 0.014 265);
+
+  --accent: oklch(0.95 0.018 258);
+  --accent-foreground: oklch(0.35 0.09 262);
+
+  --destructive: oklch(0.575 0.205 27);
+  --destructive-foreground: oklch(0.99 0.002 95);
+
+  --success: oklch(0.575 0.14 155);
+  --success-foreground: oklch(0.99 0.002 95);
+
+  --warning: oklch(0.72 0.15 75);
+  --warning-foreground: oklch(0.26 0.05 75);
+
+  --info: oklch(0.6 0.14 240);
+  --info-foreground: oklch(0.99 0.002 95);
+
+  --border: oklch(0.915 0.006 95);
+  --input: oklch(0.9 0.007 95);
+  --ring: oklch(0.545 0.185 262);
+
+  /* Stirling brand red — used sparingly (logo, brand moments). */
+  --brand: oklch(0.52 0.16 25);
+  --brand-foreground: oklch(0.99 0.002 95);
+
+  /* Document-specific surfaces. */
+  --pdf-canvas: oklch(0.945 0.005 95);
+  --pdf-page: oklch(1 0 0);
+  --pdf-page-border: oklch(0.88 0.006 95);
+  --pdf-ink: oklch(0.28 0.012 80);
+  --pdf-highlight: oklch(0.93 0.16 95 / 0.62);
+  --pdf-selection: oklch(0.72 0.12 255 / 0.32);
+  --pdf-shadow: 0 1px 2px rgb(23 23 27 / 0.06), 0 8px 24px -12px rgb(23 23 27 / 0.22);
+
+  --skeleton-highlight: oklch(0.995 0.002 95);
+
+  --overlay: oklch(0.2 0.01 265 / 0.55);
+  --radius: 0.625rem;
+
+  /* Typography is inheritable so hosts can replace it with one declaration. */
+  --spdf-font-sans: 'Inter Variable', 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --spdf-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.dark,
+[data-theme='dark'] {
+  --background: oklch(0.165 0.007 265);
+  --foreground: oklch(0.945 0.006 95);
+
+  --card: oklch(0.205 0.008 265);
+  --card-foreground: var(--foreground);
+  --popover: oklch(0.215 0.009 265);
+  --popover-foreground: var(--foreground);
+
+  --primary: oklch(0.68 0.16 260);
+  --primary-foreground: oklch(0.16 0.03 262);
+
+  --secondary: oklch(0.255 0.009 265);
+  --secondary-foreground: oklch(0.93 0.006 95);
+
+  --muted: oklch(0.24 0.008 265);
+  --muted-foreground: oklch(0.7 0.012 95);
+
+  --accent: oklch(0.27 0.035 260);
+  --accent-foreground: oklch(0.93 0.02 255);
+
+  --destructive: oklch(0.65 0.19 25);
+  --destructive-foreground: oklch(0.16 0.02 25);
+
+  --success: oklch(0.67 0.15 155);
+  --success-foreground: oklch(0.15 0.03 155);
+
+  --warning: oklch(0.78 0.15 80);
+  --warning-foreground: oklch(0.2 0.04 80);
+
+  --info: oklch(0.68 0.14 240);
+  --info-foreground: oklch(0.15 0.03 240);
+
+  --border: oklch(0.295 0.009 265);
+  --input: oklch(0.32 0.01 265);
+  --ring: oklch(0.68 0.16 260);
+
+  --brand: oklch(0.61 0.17 25);
+  --brand-foreground: oklch(0.99 0.002 95);
+
+  /* PDF pages always stay white — black document ink must remain legible. */
+  --pdf-canvas: oklch(0.135 0.006 265);
+  --pdf-page: oklch(1 0 0);
+  --pdf-page-border: oklch(0.34 0.01 265);
+  --pdf-ink: oklch(0.28 0.012 80);
+  --pdf-highlight: oklch(0.93 0.16 95 / 0.58);
+  --pdf-selection: oklch(0.7 0.14 255 / 0.38);
+  --pdf-shadow: 0 1px 2px rgb(0 0 0 / 0.35), 0 14px 34px -16px rgb(0 0 0 / 0.65);
+
+  --skeleton-highlight: oklch(0.32 0.01 265);
+
+  --overlay: oklch(0.08 0.005 265 / 0.7);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-pdf-canvas: var(--pdf-canvas);
+  --color-pdf-page: var(--pdf-page);
+  --color-pdf-page-border: var(--pdf-page-border);
+  --color-pdf-ink: var(--pdf-ink);
+  --color-pdf-highlight: var(--pdf-highlight);
+  --color-pdf-selection: var(--pdf-selection);
+
+  --font-sans: var(--spdf-font-sans);
+  --font-mono: var(--spdf-font-mono);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  /* Scoped reset: every component root carries `.spdf`. */
+  .spdf,
+  .spdf *,
+  .spdf *::before,
+  .spdf *::after {
+    box-sizing: border-box;
+  }
+
+  .spdf :where(button, input, select, textarea) {
+    font: inherit;
+    letter-spacing: inherit;
+    color: inherit;
+    margin: 0;
+  }
+
+  .spdf :where(button) {
+    background-color: transparent;
+    background-image: none;
+    padding: 0;
+    border: 0;
+  }
+
+  .spdf :where(img, svg, video, canvas) {
+    display: block;
+    max-width: 100%;
+  }
+
+  .spdf :where(textarea) {
+    resize: vertical;
+  }
+
+  .spdf :where([hidden]) {
+    display: none !important;
+  }
+}
+
+@layer components {
+  /* ---------- Motion ---------- */
+  @keyframes spdf-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes spdf-pop-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes spdf-dialog-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px) scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes spdf-slide-in-right {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes spdf-slide-in-left {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes spdf-slide-in-top {
+    from {
+      transform: translateY(-100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes spdf-slide-in-bottom {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes spdf-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes spdf-skeleton {
+    0% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0 50%;
+    }
+  }
+
+  @keyframes spdf-stripes {
+    from {
+      background-position: 0 0;
+    }
+    to {
+      background-position: 28px 0;
+    }
+  }
+
+  @keyframes spdf-pulse-soft {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.55;
+    }
+  }
+
+  @keyframes spdf-draw-check {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes spdf-indeterminate {
+    0% {
+      transform: translateX(-110%);
+    }
+    100% {
+      transform: translateX(360%);
+    }
+  }
+
+  @keyframes spdf-rise {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .spdf-overlay[data-state='open'] {
+    animation: spdf-fade-in 150ms ease-out;
+  }
+
+  .spdf-popover[data-state='open'] {
+    animation: spdf-pop-in 140ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .spdf-dialog[data-state='open'] {
+    animation: spdf-dialog-in 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .spdf-sheet-right[data-state='open'] {
+    animation: spdf-slide-in-right 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .spdf-sheet-left[data-state='open'] {
+    animation: spdf-slide-in-left 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .spdf-sheet-top[data-state='open'] {
+    animation: spdf-slide-in-top 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .spdf-sheet-bottom[data-state='open'] {
+    animation: spdf-slide-in-bottom 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .spdf-rise {
+    animation: spdf-rise 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .spdf-spin {
+    animation: spdf-spin 800ms linear infinite;
+  }
+
+  .spdf-pulse {
+    animation: spdf-pulse-soft 1.8s ease-in-out infinite;
+  }
+
+  .spdf-indeterminate {
+    animation: spdf-indeterminate 1.25s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  }
+
+  .spdf-skeleton {
+    background-image: linear-gradient(
+      90deg,
+      var(--muted) 25%,
+      var(--skeleton-highlight) 37%,
+      var(--muted) 63%
+    );
+    background-size: 400% 100%;
+    animation: spdf-skeleton 1.6s ease infinite;
+  }
+
+  .spdf-stripes {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      color-mix(in oklab, var(--primary) 70%, transparent) 0 10px,
+      color-mix(in oklab, var(--primary) 35%, transparent) 10px 20px
+    );
+    background-size: 28px 28px;
+    animation: spdf-stripes 900ms linear infinite;
+  }
+
+  .spdf-check-path {
+    stroke-dasharray: 24;
+    stroke-dashoffset: 24;
+    animation: spdf-draw-check 420ms 120ms cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  }
+
+  /* ---------- List transitions ---------- */
+  .spdf-list-move,
+  .spdf-list-enter-active,
+  .spdf-list-leave-active {
+    transition:
+      transform 180ms cubic-bezier(0.16, 1, 0.3, 1),
+      opacity 180ms ease;
+  }
+
+  .spdf-list-enter-from,
+  .spdf-list-leave-to {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  .spdf-list-leave-active {
+    position: absolute;
+    width: 100%;
+  }
+
+  /* ---------- PDF text layer ---------- */
+  .spdf-text-layer {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    line-height: 1;
+    letter-spacing: normal;
+    word-spacing: normal;
+    text-size-adjust: none;
+    forced-color-adjust: none;
+    transform-origin: 0 0;
+    caret-color: transparent;
+    color-scheme: only light;
+    user-select: text;
+    z-index: 0;
+    --min-font-size: 1;
+    --text-scale-factor: calc(var(--total-scale-factor) * var(--min-font-size));
+    --min-font-size-inv: calc(1 / var(--min-font-size));
+  }
+
+  .spdf-text-layer span,
+  .spdf-text-layer br {
+    position: absolute;
+    color: transparent;
+    white-space: pre;
+    cursor: text;
+    transform-origin: 0% 0%;
+    user-select: text;
+  }
+
+  .spdf-text-layer > :not(.markedContent),
+  .spdf-text-layer .markedContent span:not(.markedContent) {
+    z-index: 1;
+    --font-height: 0;
+    font-size: calc(var(--text-scale-factor) * var(--font-height));
+    --scale-x: 1;
+    --rotate: 0deg;
+    transform: rotate(var(--rotate)) scaleX(var(--scale-x)) scale(var(--min-font-size-inv));
+  }
+
+  .spdf-text-layer .markedContent {
+    display: contents;
+  }
+
+  .spdf-text-layer span[role='img'] {
+    user-select: none;
+    cursor: default;
+  }
+
+  .spdf-text-layer span.markedContent {
+    top: 0;
+    height: 0;
+  }
+
+  .spdf-text-layer ::selection {
+    background: var(--pdf-selection);
+  }
+
+  .spdf-text-layer .endOfContent {
+    display: block;
+    position: absolute;
+    inset: 100% 0 0;
+    z-index: 0;
+    cursor: default;
+    user-select: none;
+  }
+
+  /* ---------- Utility-ish helpers ---------- */
+  .spdf-paper {
+    background: var(--pdf-page);
+    box-shadow: var(--pdf-shadow);
+  }
+
+  .spdf-tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .spdf-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--border) 80%, transparent) transparent;
+  }
+
+  .spdf-scroll::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  .spdf-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .spdf-scroll::-webkit-scrollbar-thumb {
+    background: color-mix(in oklab, var(--border) 85%, transparent);
+    border: 3px solid transparent;
+    background-clip: content-box;
+    border-radius: 999px;
+  }
+
+  .spdf-scroll::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in oklab, var(--muted-foreground) 55%, transparent);
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+
+  .spdf-line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .spdf-checkerboard {
+    background-image:
+      linear-gradient(45deg, var(--muted) 25%, transparent 25%),
+      linear-gradient(-45deg, var(--muted) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, var(--muted) 75%),
+      linear-gradient(-45deg, transparent 75%, var(--muted) 75%);
+    background-size: 16px 16px;
+    background-position:
+      0 0,
+      0 8px,
+      8px -8px,
+      -8px 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spdf,
+  .spdf *,
+  .spdf *::before,
+  .spdf *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
