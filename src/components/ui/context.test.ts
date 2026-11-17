@@ -8,7 +8,7 @@ import { provideSpdfUi } from './context';
 const HostButton = defineComponent({
   name: 'HostButton',
   // Deliberately does not declare `disabled`; a real host button may rely on
-  // attribute fallthrough for it, as the odoo app does.
+  // attribute fallthrough for it.
   props: {
     variant: String,
     size: String,

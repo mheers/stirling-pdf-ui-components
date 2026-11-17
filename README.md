@@ -478,9 +478,8 @@ utilities from your recipe win. Dialog and sheet positioning stays with the libr
 controls the skin. Components not listed above keep the library implementation but use your tokens,
 dark mode, and radius.
 
-For the `odoo` app this plugs into `web/src/components/ui/button/Button.vue` directly: its
-`variant` and `size` names match, and the provider maps the library's `icon-sm` toolbar size to
-your `icon` size.
+If your button already uses the shadcn `variant` and `size` names, it plugs in directly: the
+provider maps the library's `icon-sm` and `icon-lg` toolbar sizes to `icon`.
 
 If your app already renders PDFs with another engine (for example EmbedPDF), import from
 `@mheers/stirling-pdf-ui-components/core` and use the engine-free surfaces — dropzones, file and

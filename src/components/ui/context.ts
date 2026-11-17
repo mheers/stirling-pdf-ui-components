@@ -77,7 +77,7 @@ export function useSpdfUi(): SpdfUiConfig {
  *
  * ```ts
  * app.use(SpdfUiPlugin, {
- *   components: { Button: OdooButton },
+ *   components: { Button: UiButton },
  *   classes: { input: 'h-9 rounded-md border bg-background px-3' },
  * });
  * ```
